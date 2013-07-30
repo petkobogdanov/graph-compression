@@ -227,6 +227,18 @@ void Graph::read_graph(const std::string& graph_file_name) throw (std::ios_base:
 }
 
 /**
+ * Partitions the graph by removing edges until no partitions has size
+ * larger than max_size_partition.
+ * @param max_size_partition max size partition
+ * @return
+ * @throws
+**/
+void Graph::partition_graph(const unsigned int max_size_partition)
+{
+	
+}
+
+/**
  * Graph destructor
  * @param 
  * @return 
@@ -585,6 +597,72 @@ void Graph::bounded_bfs(std::vector<unsigned int>& visited, const unsigned int c
 			}
 		}
 	}
+}
+
+const unsigned int Graph::bfs(const unsigned root, unsigned int& num_visited, std::vector<bool>& visited)
+{
+	unsigned int size_component = 1;
+	std::queue<unsigned int> queue;
+	unsigned int u;
+	unsigned int z;
+	
+	queue.push(root);
+	visited.at(root) = true;
+
+	while(! queue.empty())
+	{
+		u = queue.front();
+		queue.pop();
+			
+		for (std::list<unsigned int>::iterator it = adjacency_list[u]->begin(); 
+			it != adjacency_list[u]->end(); ++it)
+		{
+			z = *it;
+
+			if(! visited.at(z))
+			{
+				queue.push(z);
+				visited.at(z) = true;
+				size_component++;
+			}
+		}
+	}
+	
+	num_visited = num_visited + size_component;
+
+	return size_component;
+}
+
+const unsigned int Graph::size_largest_connected_component()
+{
+	std::vector<bool> visited;
+	visited.reserve(size());
+	unsigned int num_visited = 0;
+	unsigned int size_component;
+	unsigned int size_largest = 0;
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		visited.push_back(false);
+	}
+
+	while(num_visited < size())
+	{
+		for(unsigned int v = 0; v < size(); v++)
+		{
+			if(! visited.at(v))
+			{
+				size_component = bfs(v, num_visited, visited);
+
+				if(size_component > size_largest)
+				{
+					size_largest = size_component;
+				}
+			}
+		}
+	}
+
+	return size_largest;
 }
 
 /**
