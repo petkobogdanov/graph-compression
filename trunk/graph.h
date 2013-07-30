@@ -67,6 +67,15 @@ class Graph
 		virtual ~Graph();
 		
 		/**
+		 * Partitions the graph by removing edges until no partitions has size
+		 * larger than max_size_partition.
+		 * @param max_size_partition max size partition
+		 * @return
+		 * @throws
+		**/
+		void partition_graph(const unsigned int max_size_partition);
+
+		/**
 		 * Builds a distance structure for slice tree, this structure 
 		 * efficiently returns the list of vertices at a given distance
 		 * from a certain vertex
@@ -249,6 +258,10 @@ class Graph
 		std::vector<bool> bitmap_sample;
 		std::list<unsigned int> samples;
 
+		const unsigned int size_largest_connected_component();
+		const unsigned int bfs(const unsigned root, 
+			unsigned int& num_visited, std::vector<bool>& visited);
+		
 		/**
 		 * Reads the graph data
 		 * @param graph_file_name input file with edges
