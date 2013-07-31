@@ -32,7 +32,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <algorithm> 
 #include <sstream>
 
-/*my includes*/
+typedef struct Edge
+{
+	unsigned int v_one;
+	unsigned int v_two;
+	double difference;
+}edge_t;
+
+class CompareEdges
+{
+	public:
+		bool operator()(const edge_t* edge_one, 
+			const edge_t* edge_two) const
+		{
+			return edge_one->difference < edge_two->difference;
+		}
+};
 
 /**
  * Class for graph manipulation
@@ -255,13 +270,15 @@ class Graph
 		std::vector< std::vector< std::list<unsigned int >* >* > distance_str;
 		std::vector<unsigned int> sorted_vector; 
 		unsigned int graph_diameter;
+		unsigned int num_edges;
 		std::vector<bool> bitmap_sample;
 		std::list<unsigned int> samples;
 
 		const unsigned int size_largest_connected_component();
 		const unsigned int bfs(const unsigned root, 
 			unsigned int& num_visited, std::vector<bool>& visited);
-		
+		void remove_edge(const edge_t* edge);
+
 		/**
 		 * Reads the graph data
 		 * @param graph_file_name input file with edges
