@@ -280,7 +280,8 @@ void SliceTree::optimal_cut(st_node_t* st_node) const
 	{
 		e_r = min_error_radius(st_node->partition[c], 
 			st_node->partition, st_node->diameter, 
-			st_node->in_partition);
+			st_node->in_partition, st_node->sum_values,
+			st_node->sum_squares);
 		error = global_error - st_node->error_partition + e_r.first;
 		radius = e_r.second;
 
@@ -335,13 +336,14 @@ void SliceTree::compute_difference_coefficients()
  * @param in_partition bitmap of the partition to be split
  * @return pair <error, radius>
  * @throws
+
+ FIXME: should partition be a list??
 **/
 const std::pair<double, unsigned int> SliceTree::min_error_radius(const unsigned int center, 
 	const std::vector<unsigned int>& partition, unsigned int diameter,
-	const std::vector<bool>& in_partition) const
+	const std::vector<bool>& in_partition, const double sum_values, 
+	const double sum_squares) const
 {
-	double sum_values = 0;
-	double sum_squares = 0;
 	double curr_sum_values = 0;
 	double curr_sum_squares = 0;
 	
@@ -359,27 +361,7 @@ const std::pair<double, unsigned int> SliceTree::min_error_radius(const unsigned
 		max_radius = diameter + 1;
 	}
 
-	unsigned int num_vertices = 0;
-
-	/*Computing the sums of the values and the sums of the squares of the values
-	* in order to compute the SSE for each possible radius*/
-	for(unsigned int r = 0; r < max_radius; r++)
-	{
-		vertices_at_dist_r = graph->vertices_at_distance(center, r);
-
-		for(std::list<unsigned int>::iterator it = vertices_at_dist_r->begin();
-			it != vertices_at_dist_r->end();++it)
-		{
-			vertex = *it;
-
-			if(in_partition[vertex])
-			{
-				sum_values = sum_values + graph->value(vertex);
-				sum_squares = sum_squares + pow(graph->value(vertex), 2);
-				num_vertices = num_vertices + 1;
-			}
-		}
-	}
+	unsigned int num_vertices = partition.size();
 
 	double error_inside;
 	double error_outside;
@@ -453,11 +435,15 @@ void SliceTree::compress(const unsigned int budget)
 	* in the graph*/	
 	tree->partition.reserve(graph->size());
 	tree->in_partition.reserve(graph->size());
-	
+	tree->sum_values = 0;
+	tree->sum_squares = 0;
+
 	for(unsigned int v = 0; v < graph->size(); v++)
 	{
 		tree->partition.push_back(v);
 		tree->in_partition.push_back(true);
+		tree->sum_values = tree->sum_values + graph->value(v);
+		tree->sum_squares = tree->sum_squares + pow(graph->value(v), 2);
 	}
 	
 	tree->size = tree->partition.size();
@@ -701,13 +687,20 @@ const bool SliceTree::split_partition(st_node_t* st_node)
 	}
 
 	unsigned int vertex;
+	left->sum_values = 0;
+	left->sum_squares = 0;
 
 	for(unsigned int v = 0; v < left->partition.size(); v++)
 	{
 		vertex = left->partition[v];
 		left->in_partition[vertex] = true;
+		left->sum_values = left->sum_values + graph->value(vertex);
+		left->sum_squares = left->sum_squares + pow(graph->value(vertex), 2);
 	}
 
+	right->sum_values = 0;
+	right->sum_squares = 0;
+	
 	for(unsigned int v = 0; v < st_node->partition.size(); v++)
 	{
 		vertex = st_node->partition[v];
@@ -716,6 +709,8 @@ const bool SliceTree::split_partition(st_node_t* st_node)
 		{
 			right->in_partition[vertex] = true;
 			right->partition.push_back(vertex);
+			right->sum_values = right->sum_values + graph->value(vertex);
+			right->sum_squares = right->sum_squares + pow(graph->value(vertex), 2);
 		}
 	}
 

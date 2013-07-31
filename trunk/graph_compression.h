@@ -55,6 +55,9 @@ typedef struct STNode
 	
 	float average;
 	float difference;
+
+	double sum_values;
+	double sum_squares;
 	
 	/*children*/
 	struct STNode* left;
@@ -309,10 +312,11 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * @partition partition to be split
 		 * @diameter diameter of the partition to be split
 		 * @in_partition bitmap of the partition to be split
+		 FIXME: add new parameters
 		 * @return pair <error, radius>
 		 * @throws
 		**/
-		const std::pair<double, unsigned int> min_error_radius(const unsigned int center, const std::vector<unsigned int>& partition, unsigned int diameter, const std::vector<bool>& in_partition) const;
+		const std::pair<double, unsigned int> min_error_radius(const unsigned int center, const std::vector<unsigned int>& partition, unsigned int diameter, const std::vector<bool>& in_partition, const double sum_values, const double sum_squares) const;
 		
 		/**
 		 * Computes the average value of a partition

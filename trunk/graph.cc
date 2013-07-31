@@ -39,6 +39,7 @@ Graph::Graph(const std::string& graph_file_name, const std::string& values_file_
 	read_graph(graph_file_name, values_file_name);
 	graph_diameter = 0;
 	distance_matrix = NULL;
+	num_edges = 0;
 }
 
 /**
@@ -53,6 +54,7 @@ Graph::Graph(const std::string& graph_file_name) throw (std::ios_base::failure)
 	read_graph(graph_file_name);
 	graph_diameter = 0;
 	distance_matrix = NULL;
+	num_edges = 0;
 }
 
 /**
@@ -145,6 +147,11 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 
 		adjacency_list[vertex_ids[vertex_one]]->push_back(vertex_ids[vertex_two]);
 		adjacency_list[vertex_ids[vertex_two]]->push_back(vertex_ids[vertex_one]);
+
+		if(vertex_ids[vertex_one] > vertex_ids[vertex_two])
+		{
+			num_edges++;
+		}
 		
 		std::getline(input_graph_file, line_str);
 	}
@@ -220,6 +227,12 @@ void Graph::read_graph(const std::string& graph_file_name) throw (std::ios_base:
 
 		adjacency_list[vertex_ids[vertex_one]]->push_back(vertex_ids[vertex_two]);
 		adjacency_list[vertex_ids[vertex_two]]->push_back(vertex_ids[vertex_one]);
+		
+		if(vertex_ids[vertex_one] > vertex_ids[vertex_two])
+		{
+			num_edges++;
+		}
+		
 		std::getline(input_graph_file, line_str);
 	}
 
@@ -235,7 +248,79 @@ void Graph::read_graph(const std::string& graph_file_name) throw (std::ios_base:
 **/
 void Graph::partition_graph(const unsigned int max_size_partition)
 {
+	std::vector<edge_t*> candidate_edges;
+	candidate_edges.reserve(num_edges);
+	edge_t* edge;
+	unsigned int u;
+
+	for(unsigned int v = 0; v < adjacency_list.size(); v++)
+	{
+		for (std::list<unsigned int>::iterator it = adjacency_list[v]->begin(); 
+			it != adjacency_list[v]->end(); ++it)
+		{
+			u = *it;
+
+			if(v > u)
+			{
+				edge = new edge_t;
+				edge->v_one = v;
+				edge->v_two = u;
+
+				edge->difference = fabs(value(v) - value(u));
+
+				candidate_edges.push_back(edge);
+			}
+		}
+	}
+
+	std::sort(candidate_edges.begin(), candidate_edges.end(), CompareEdges());
+	unsigned size_largest = size();
+
+	for(unsigned int e = 0; e < candidate_edges.size(); e++)
+	{
+		remove_edge(candidate_edges.at(e));
+		
+		if(e % (size_largest-max_size_partition) == 0)
+		{
+			size_largest = size_largest_connected_component();
+		}
+		
+		std::cout << "size_largest = " << size_largest << std::endl;
+
+		if(size_largest <= max_size_partition)
+		{
+			break;
+		}
+	}
+}
+
+void Graph::remove_edge(const edge_t* edge)
+{
+	unsigned int u;
+
+	for (std::list<unsigned int>::iterator it = adjacency_list[edge->v_one]->begin(); 
+		it != adjacency_list[edge->v_one]->end(); ++it)
+	{
+		u = *it;
+
+		if(u == edge->v_two)
+		{
+			adjacency_list[edge->v_one]->erase(it);
+			break;
+		}
+	}
 	
+	for (std::list<unsigned int>::iterator it = adjacency_list[edge->v_two]->begin(); 
+		it != adjacency_list[edge->v_two]->end(); ++it)
+	{
+		u = *it;
+
+		if(u == edge->v_one)
+		{
+			adjacency_list[edge->v_two]->erase(it);
+			break;
+		}
+	}
 }
 
 /**

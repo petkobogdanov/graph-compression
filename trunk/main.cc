@@ -64,6 +64,9 @@ int main(int argc, char** argv)
 		/*Reading input graph with values*/
 		Graph* graph = new Graph(Parameters::graph_file_name, Parameters::values_file_name);
 
+		//FIXME graph->partition_graph(10000);
+		//exit(1);
+		
 		if(Parameters::num_samples > 0 && Parameters::num_samples < graph->size())
 		{
 			graph->set_sample(Parameters::num_samples);
