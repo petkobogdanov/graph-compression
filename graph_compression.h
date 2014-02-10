@@ -215,7 +215,6 @@ class SliceTree: public GraphCompressionAlgorithm
 		/**
 		 * Constructor. 
 		 * @param graph graph 
-		 * @param budget budget
 		 * @return 
 		 * @throws 
 		**/
@@ -404,38 +403,23 @@ class SliceTree: public GraphCompressionAlgorithm
 		}
 };
 
+/**
+ * Class that implements the slice tree compression using sampling
+ * to identify probabilistic good slices.
+**/
 class SliceTreeSamp: public SliceTree
 {
 	public:	
 		/**
 		 * Constructor. 
 		 * @param graph graph 
-		 * @param budget budget
+		 * @param delta probability for bounds in error reduction estimates
+		 * for slices
+		 * @param rho approximation parameter (rho)
+		 * @param num_samples number of samples
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeSamp(Graph& _graph):
-			SliceTree(_graph)
-		{
-			delta = 0.9; 
-			rho = 1;
-			theta = compute_theta();
-			num_samples = 0;
-			
-			dist_near_center.reserve(graph->size());
-			radius_near_center.reserve(graph->size());
-			dist_center_part.reserve(graph->size());
-			radius_part.reserve(graph->size());
-
-			for(unsigned int v = 0; v < graph->size(); v++)
-			{
-				dist_near_center.at(v) = std::numeric_limits<unsigned int>::max();
-				radius_near_center.at(v) = std::numeric_limits<unsigned int>::max();
-				dist_center_part.at(v) = std::numeric_limits<unsigned int>::max();
-				radius_part.at(v) =  std::numeric_limits<unsigned int>::max();
-			}
-		}
-
 		SliceTreeSamp(Graph& _graph, const double _delta, const double _rho,
 			const unsigned int _num_samples):
 			SliceTree(_graph)
@@ -445,6 +429,8 @@ class SliceTreeSamp: public SliceTree
 			theta = compute_theta();
 			num_samples = _num_samples;
 			
+			/*Initializing data structures that are used to compute
+			* upper and lower bounds on the sizes of partitions*/
 			dist_near_center.reserve(graph->size());
 			radius_near_center.reserve(graph->size());
 			dist_center_part.reserve(graph->size());
@@ -460,16 +446,6 @@ class SliceTreeSamp: public SliceTree
 		}
 		
 		/**
-		 * Constructor. 
-		 * @param input_file_name serialized graph with compressed data 
-		 * @param graph graph
-		 * @return 
-		 * @throws 
-		**/
-		SliceTreeSamp(const std::string& input_file_name, Graph& graph):
-			SliceTree(input_file_name, graph){;}
-		
-		/**
 		 * Destructor
 		 * @param
 		 * @return
@@ -481,12 +457,48 @@ class SliceTreeSamp: public SliceTree
 		double rho;
 		double theta;
 		unsigned int num_samples;
-		void optimal_cut(st_node_t* st_node) const;
-		double compute_theta();
+		
+		/*Data structures for computing upper and lower
+		 * bounds on sizes of partitions without actually
+		 * going through the complete list of vertices in 
+		 * the slice*/
 		std::vector<unsigned int> dist_near_center;
 		std::vector<unsigned int> dist_center_part;
 		std::vector<unsigned int> radius_near_center;
 		std::vector<unsigned int> radius_part;
+		
+		/**
+		 * Identifies a probabilistic optimal cut 
+		 * (center/radius) for the partition represented 
+		 * as a slice tree node using sampling. This overwrites
+		 * the standard function, which makes exact computations.
+		 * @param st_node slice tree node
+		 * @return
+		 * @throws
+		**/
+		void optimal_cut(st_node_t* st_node) const;
+		
+		/**
+		 * Computes theta, which is the range in which all values are.
+		 * @param 
+		 * @return
+		 * @throws
+		**/
+		double compute_theta();
+		
+		/**
+		 * Computes upper bounds on the error reduction of slices centered
+		 * at a given vertex using sampling and inserts them into a set of 
+		 * upper bounds.
+		 * @param upper_bounds set of upper bounds
+		 * @param center center
+		 * @param partition partition
+		 * @param diameter diameter
+		 * @param in_partition bitmap for the partition
+		 * @param average partition average
+		 * @return
+		 * @throws
+		 **/
 		void upper_bound_error_reduction(
 			std::vector<up_bound_t*>& upper_bounds,
 			const unsigned int center,
@@ -494,23 +506,103 @@ class SliceTreeSamp: public SliceTree
 		        const unsigned int diameter, 
 		        const std::vector<bool>& in_partition, 
 		        const double average) const;
+		
+		/**
+		 * Computes a lower bound on the size of a partition. Computing the actual
+		 * number of vertices inside and outside a slice can be expensive and there
+		 * is no way we can keep this information for slices other than the first
+		 * one. Therefore, we use this simple bound that returns the size of the partition 
+		 * for the largest first slice considering a radius that is smaller or equal to the
+		 * radius of the slice of interest but that cannot intersect with any existing slice.
+		 * @param center center
+		 * @param radius radius
+		 * @param partition partition
+		 * @return lower bound on the size of the partition defined by the given
+		 * center and radius.
+		 * @throws
+		**/
 		const unsigned lower_bound_size_partition(
 			const unsigned int center,
 		        const unsigned int radius,
 		        const std::vector<unsigned int>& partition) const;
+		
+		/**
+		 * Computes an upper bound on the size of the partition, which, basically,
+		 * does not consider any intersection between slices. The value is exact only
+		 * for the first slice.
+		 * @param center center
+		 * @param radius radius
+		 * @param partition partition
+		 * @throws 
+		 * @return
+		**/
 		const unsigned int upper_bound_size_partition(const unsigned int center,
 		         const unsigned int radius, 
 			 const std::vector<unsigned int>& partition) const;
+		
+		/**
+		 * Computes a lower bound on the size of the complement of
+		 * a partition, which, basically,
+		 * does not consider any intersection between slices. The value is exact only
+		 * for the first slice.
+		 * @param center center
+		 * @param radius radius
+		 * @param partition partition
+		 * @throws 
+		 * @return
+		**/
 		const unsigned int lower_bound_size_comp_partition(
 			const unsigned int center,
 			const unsigned int radius, 
 			const std::vector<unsigned int>& partition) const;
+		
+		/**
+		 * Splits a partition given the center and radius defined
+		 * by the slice tree node when sampling is applied. The 
+		 * difference from the standard version is that here we
+		 * update some data structures for computing upper and lower
+		 * bounds for sizes of partitions.
+		 * @param st_node slice tree node
+		 * @return true in case the split was performed
+		 *      false, otherwise
+		 * @throws
+		**/
 		const bool split_partition(st_node_t* st_node);
+		
+		 /**
+		  * Computes a probabilistic upper bound on the error reduction of 
+		  * a slice based on an estimate for the mean value in the partition,
+		  * which is computed using the sample. 
+		  * @param center center
+		  * @param radius radius
+		  * @param partition partition
+		  * @param average partition average value
+		  * @param weighted_mean weighted mean of the partition generated by
+		  * the slice computed using the sample.
+		  * @param num_samples_part number of samples used to compute the 
+		  * weighted mean.
+		  * @throws 
+		  * @return upper bound.
+		 **/
 		double upper_bound_error_reduction_mean_estimate(
 			const unsigned int center, const unsigned int radius,
 		  	const std::vector<unsigned int>& partition,
 		   	const double average, const double weighted_mean, 
 			const unsigned int num_samples_part) const;
+		
+		/**
+		 * Computes a probabilistic upper bound on the error reduction of 
+		 * a slice based on the number of vertices inside the partition sampled
+		 * in a biased sample. Because this might not biased sampling, just 
+		 * returns a very large number.
+		 * @param center center
+		 * @param radius radius
+		 * @param partition partition
+		 * @param num_samples_part number of samples used to compute the 
+		 * weighted mean.
+		 * @throws 
+		 * @return upper bound.
+		**/
 		double upper_bound_error_reduction_num_samples
 			(const unsigned int center, const unsigned int radius,
 			const std::vector<unsigned int>& partition,
@@ -520,18 +612,47 @@ class SliceTreeSamp: public SliceTree
 		}
 };
 
+/**
+ * Class that implements the slice tree compression using biased sampling
+ * to identify probabilistic good slices.
+**/
 class SliceTreeBiasSamp: public SliceTreeSamp
 {
 	public:
-//		SliceTreeBiasSamp(Graph& _graph):
-//			SliceTreeSamp(_graph){;}
-		
+		/**
+		 * Constructor. Does nothing. 
+		 * @param graph graph 
+		 * @param delta probability for bounds in error reduction estimates
+		 * for slices
+		 * @param rho approximation parameter (rho)
+		 * @param num_samples number of samples
+		 * @return 
+		 * @throws 
+		**/
 		SliceTreeBiasSamp(Graph& _graph, const double _delta, const double _rho,
 			const unsigned int _num_samples):
 			SliceTreeSamp(_graph, _delta, _rho, _num_samples){;}
-
+		
+		/**
+		 * Destructor. Does nothing. 
+		 * @param  
+		 * @return 
+		 * @throws 
+		**/
 		virtual ~SliceTreeBiasSamp(){;}
 	private:
+		/**
+		 * Computes a probabilistic upper bound on the error reduction of 
+		 * a slice based on the number of vertices inside the partition sampled
+		 * in a biased sample. 
+		 * @param center center
+		 * @param radius radius
+		 * @param partition partition
+		 * @param num_samples_part number of samples used to compute the 
+		 * weighted mean.
+		 * @throws 
+		 * @return upper bound.
+		**/
 		double upper_bound_error_reduction_num_samples
 			(const unsigned int center, const unsigned int radius,
 			const std::vector<unsigned int>& partition,
@@ -541,15 +662,41 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 class SliceTreeUnifSamp: public SliceTreeSamp
 {
 	public:
-//		SliceTreeUnifSamp(Graph& _graph):
-//			SliceTreeSamp(_graph){;}
-		
+		/**
+		 * Constructor. Does nothing. 
+		 * @param graph graph 
+		 * @param delta probability for bounds in error reduction estimates
+		 * for slices
+		 * @param rho approximation parameter (rho)
+		 * @param num_samples number of samples
+		 * @return 
+		 * @throws 
+		**/
 		SliceTreeUnifSamp(Graph& _graph, const double _delta, const double _rho,
 			const unsigned int _num_samples):
 			SliceTreeSamp(_graph, _delta, _rho, _num_samples){;}
 
+		/**
+		 * Destructor. Does nothing. 
+		 * @param  
+		 * @return 
+		 * @throws 
+		**/
 		virtual ~SliceTreeUnifSamp(){;}
 	private:
+		/**
+		 * Computes a probabilistic upper bound on the error reduction of 
+		 * a slice based on the number of vertices inside the partition sampled
+		 * in a biased sample. Because this is not biased sampling, just returns
+		 * a very large number.
+		 * @param center center
+		 * @param radius radius
+		 * @param partition partition
+		 * @param num_samples_part number of samples used to compute the 
+		 * weighted mean.
+		 * @throws 
+		 * @return upper bound.
+		**/
 		double upper_bound_error_reduction_num_samples
 			(const unsigned int center, const unsigned int radius,
 			const std::vector<unsigned int>& partition,
