@@ -31,6 +31,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <map>
 #include <algorithm> 
 #include <sstream>
+#include <cmath>
+#include <pthread.h>
 
 typedef struct Edge
 {
@@ -45,9 +47,17 @@ class CompareEdges
 		bool operator()(const edge_t* edge_one, 
 			const edge_t* edge_two) const
 		{
-			return edge_one->difference < edge_two->difference;
+			return edge_one->difference > edge_two->difference;
 		}
 };
+
+typedef struct _PthreadParameters
+{
+	std::vector< std::list<unsigned int>* >* adjacency_list;
+	std::list<unsigned int>* pool;
+	pthread_mutex_t* mutex_pool;
+	std::vector<std::vector<unsigned int>*>* partition_sizes;
+}PthreadParameters;
 
 /**
  * Class for graph manipulation
@@ -82,15 +92,6 @@ class Graph
 		virtual ~Graph();
 		
 		/**
-		 * Partitions the graph by removing edges until no partitions has size
-		 * larger than max_size_partition.
-		 * @param max_size_partition max size partition
-		 * @return
-		 * @throws
-		**/
-		void partition_graph(const unsigned int max_size_partition);
-
-		/**
 		 * Builds a distance structure for slice tree, this structure 
 		 * efficiently returns the list of vertices at a given distance
 		 * from a certain vertex
@@ -109,6 +110,14 @@ class Graph
 		 * @throws 
 		**/
 		void build_distance_str_slice_tree_sample();
+
+		/**
+		 * Prints the slice tree distance structure
+		 * @param 
+		 * @return 
+		 * @throws 
+		**/
+		void print_distance_str_slice_tree();
 
 		/**
 		 * Builds a distance matrix for the graph
@@ -146,16 +155,72 @@ class Graph
 		**/
 		void bounded_bfs(std::vector<unsigned int>& visited, const unsigned int center, const unsigned int radius, const std::vector<bool>& bitmap) const;
 
+		void update_partition_size_structs(
+			const unsigned int center,
+			const unsigned int radius,
+			std::vector<unsigned int>& dist_near_center,
+			std::vector<unsigned int>& dist_center_part,
+			std::vector<unsigned int>& radius_near_center,
+			std::vector<unsigned int>& radius_part,
+			const std::vector<bool>& bitmap) const;
+
 		/**
-		 * Selects a set of vertices as random samples from the graph
+		 * Selects a set of vertices as random samples 
+		 * (without replacement) from the graph
 		 * @param num_samples number of samples
 		 * @return
 		 * @throws 
 		**/
 		void set_sample(const unsigned int num_samples);
 
-		/*Inline methods:*/
+		/**
+		 * Selects a set of biased vertices from the graph according to (v-miu)^2
+		 * @param num_samples number of samples
+		 * @return
+		 * @throws
+		**/
+		void set_biased_sample(const unsigned int num_samples);
+
+		/**
+		 * Prints the graph (for debugging purposes)
+		 * @param
+		 * @return
+		 * @throws 
+		**/
+		void print();
+
+		/**
+		 * Builds the distance structure for a single center
+		 * @param center center
+		 * @param vertices_at_distance structure
+		 * @return
+		 * @throws
+		**/
+		void build_distance_str_slice_tree_vertex(unsigned int center, 
+			std::vector<std::list<unsigned int>*>& 
+			vertices_at_distance) const;
 		
+		/**
+		 * Reads the pre-computed partition sizes from a file.
+		 * @param input_file_name input file
+		 * @return
+		 * @throws
+		**/
+		void read_partition_sizes(const std::string& input_file_name);
+		
+		/**
+		 * Pre-computes the partitions sizes for all centers and radius
+		 * and saves them in a file. Uses multiple threads to speed up
+		 * the computations.
+		 * @param num_threads number of threads available
+		 * @param output_file_name output file
+		 * @return
+		 * @throws
+		**/
+		void pre_compute_partition_sizes(const unsigned int num_threads, 
+			const std::string& output_file_name);
+		
+		/*Inline methods:*/
 		/**
 		 * Returns the size of the graph
 		 * @param 
@@ -220,10 +285,57 @@ class Graph
 		/**
 		 * Returns the value of a vertex
 		 * @param 
-		 * @return diameter
+		 * @return value
 		 * @throws 
 		**/
 		const inline double value(const unsigned int v) const
+		{
+			if(biased_sampling)
+			{
+				return (double) (vertex_values.at(v) * lambda) / fabs(vertex_values.at(v) - mu);
+			}
+			else
+			{
+				return vertex_values.at(v);
+			}
+		}
+
+		/**
+		 * Returns the value of lambda
+		 * @param 
+		 * @return lambda
+		 * @throws 
+		**/
+		const inline double get_lambda()
+		{
+			return lambda;
+		}
+		
+		/**
+		 * Returns the weight of a vertex
+		 * @param v vertex
+		 * @return weight
+		 * @throws 
+		**/
+		const inline double weight(const unsigned int v) const
+		{
+			if(biased_sampling)
+			{
+				return (double) lambda / fabs(vertex_values.at(v) - mu);
+			}
+			else
+			{
+				return 1;
+			}
+		}
+		
+		/**
+		 * Returns the actual value of a vertex
+		 * @param v vertex
+		 * @return weight
+		 * @throws 
+		**/
+		const inline double orig_value(const unsigned int v) const
 		{
 			return vertex_values.at(v);
 		}
@@ -262,6 +374,75 @@ class Graph
 		{
 			return sorted_vector.at(pos);
 		}
+
+		/**
+		 * Returns the number of occurrences of a given item in the sample 
+		 * @param vertex id
+		 * @return count
+		 * @throws 
+		**/
+		const inline unsigned int count(const unsigned int v) const
+		{
+			if(biased_sampling or uniform_sampling) return count_sample[v]; else return 1;
+		}
+
+		/**
+		 * Sets the sampling to uniform, but the samples are not
+		 * produced again.
+		 * @param 
+		 * @return
+		 * @throws 
+		**/
+		void inline set_biased_sampling()
+		{
+			biased_sampling = true;
+		}
+
+		/**
+		 * Returns the partition size for a given center and radius
+		 * @param center center 
+		 * @param radius radius
+		 * @return partition size
+		 * @throws 
+		**/
+		const inline unsigned int get_partition_size(const unsigned int center, 
+			const unsigned int radius) const
+		{
+			return partition_sizes.at(center)->at(radius);
+		}
+
+		/**
+		 * Returns the number of samples
+		 * @param
+		 * @return number of samples
+		 * @throws
+		**/
+		const inline unsigned int get_num_samples()
+		{
+			return num_samples;
+		}
+
+		/**
+		 * Returns the sum of values
+		 * @param
+		 * @return sum of values
+		 * @throws
+		**/
+		const inline double get_sum_values()
+		{
+			return sum_values;
+		}
+
+		/**
+		 * Returns the sum of weights
+		 * @param
+		 * @return sum of weights
+		 * @throws
+		**/
+		const inline double get_sum_weights()
+		{
+			return sum_weights;
+		}
 	private:
 		std::vector< std::list<unsigned int>* > adjacency_list;
 		unsigned short int** distance_matrix;
@@ -270,15 +451,27 @@ class Graph
 		std::vector< std::vector< std::list<unsigned int >* >* > distance_str;
 		std::vector<unsigned int> sorted_vector; 
 		unsigned int graph_diameter;
-		unsigned int num_edges;
-		std::vector<bool> bitmap_sample;
+		std::vector<unsigned int> count_sample;
 		std::list<unsigned int> samples;
-
-		const unsigned int size_largest_connected_component();
-		const unsigned int bfs(const unsigned root, 
-			unsigned int& num_visited, std::vector<bool>& visited);
-		void remove_edge(const edge_t* edge);
-
+		double lambda;
+		double mu;
+		bool biased_sampling;
+		bool uniform_sampling;
+		unsigned int num_samples;
+		double sum_values;
+		double sum_weights;
+		std::vector<std::vector<unsigned int>*> partition_sizes;
+		
+		/**
+		 * Performs a bfs search over the graph, returning the size of the set of vertices 
+		 * visited and updating the visited set.
+		 * @param root root
+		 * @param visited visited set
+		 * @return 
+		 * @throws 
+		**/
+		const unsigned int bfs(const unsigned root, std::vector<bool>& visited);
+		
 		/**
 		 * Reads the graph data
 		 * @param graph_file_name input file with edges

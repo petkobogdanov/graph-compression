@@ -1,6 +1,8 @@
-CC = g++
 
-CFLAGS = -Wall -O3 -g #-pg
+
+CFLAGS = -Wall -O3 -g -pthread #-pg
+
+CC = g++ $(CFLAGS)
 
 RM = rm -f
 
@@ -11,12 +13,12 @@ all: graph_compression
 graph_compression: $(OBJS)
 	@echo ""
 	@echo " --- graph_compression ---"
-	@$(CC) $(CFLAGS) $(OBJS) -o graph_compression 
+	@$(CC) $(OBJS) -o graph_compression 
 	@echo ""
 
 %.o: %.cc %.h
 	@echo " --- COMPILING OBJECT \"$@\""
-	@$(CC) $(CFLAGS) $< -c 
+	@$(CC) $< -c 
 
 clean:
 	$(RM) graph_compression *.o

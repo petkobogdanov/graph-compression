@@ -48,11 +48,15 @@ class Parameters
 		/*Input parameters*/
 		static std::string graph_file_name;
 		static std::string values_file_name;
-		static std::vector<unsigned int> budget;
-		static std::vector<unsigned int> num_partitions;
+		static unsigned int budget;
+		static unsigned int num_partitions;
 		static std::string compression_algorithm;
 		static std::string output_file_name;
 		static unsigned int num_samples;
+		static std::string partition_sizes_file_name;
+		static unsigned int num_threads;
+		static double delta;
+		static double rho;
 		
 		/*List of valid compression algorithms for checking*/
 		static std::vector < std::string > compression_algorithms;
