@@ -25,6 +25,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <climits>
+#include <limits>
 
 /*my includes*/
 #include "graph.h"
@@ -56,9 +58,6 @@ typedef struct STNode
 	float average;
 	float difference;
 
-	double sum_values;
-	double sum_squares;
-	
 	/*children*/
 	struct STNode* left;
 	struct STNode* right;
@@ -79,6 +78,16 @@ typedef struct STNode
 }st_node_t;
 
 /**
+ * Probabilistic upper-bound
+**/
+typedef struct UpperBoundType
+{
+	unsigned int center;
+	unsigned int radius;
+	double value;
+}up_bound_t;
+
+/**
  * Prints a slice tree node
  * @param st_node slice tree node
  * @param depth depth of the node
@@ -97,6 +106,15 @@ class CompareCuts
 		bool operator()(const st_node_t* n_one, const st_node_t* n_two) const
 		{
 			return n_one->error_best_cut > n_two->error_best_cut;
+		}
+};
+
+class CompareUpperBounds
+{
+	public:
+		bool operator()(const up_bound_t* u_one, const up_bound_t* u_two) const
+		{
+			return u_one->value > u_two->value;
 		}
 };
 
@@ -195,24 +213,24 @@ class SliceTree: public GraphCompressionAlgorithm
 {
 	public:
 		/**
-		 * Constructor. Does nothing.
+		 * Constructor. 
 		 * @param graph graph 
 		 * @param budget budget
 		 * @return 
 		 * @throws 
 		**/
 		SliceTree(Graph& graph):
-			GraphCompressionAlgorithm(graph){}
+			GraphCompressionAlgorithm(graph){;}
 
 		/**
-		 * Constructor. Does nothing.
+		 * Constructor. 
 		 * @param input_file_name serialized graph with compressed data 
 		 * @param graph graph
 		 * @return 
 		 * @throws 
 		**/
 		SliceTree(const std::string& input_file_name, Graph& graph):
-		GraphCompressionAlgorithm(input_file_name, graph){}
+			GraphCompressionAlgorithm(input_file_name, graph){;}
 
 		/**
 		 * Builds a slice tree from the serialized content of a file
@@ -276,7 +294,8 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * @throws
 		**/
 		void set_compressed_values();
-	private:
+
+	protected:
 		st_node_t* tree;
 		unsigned int n_partitions;
 		double global_error; //Keeps the final sse
@@ -311,12 +330,12 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * @param center center to be considered
 		 * @partition partition to be split
 		 * @diameter diameter of the partition to be split
-		 * @in_partition bitmap of the partition to be split
-		 FIXME: add new parameters
+		 * @parameter in_partition bitmap of the partition to be split
+		 * @parameter average average value of the partition
 		 * @return pair <error, radius>
 		 * @throws
 		**/
-		const std::pair<double, unsigned int> min_error_radius(const unsigned int center, const std::vector<unsigned int>& partition, unsigned int diameter, const std::vector<bool>& in_partition, const double sum_values, const double sum_squares) const;
+		const std::pair<double, unsigned int> min_error_radius(const unsigned int center, const std::vector<unsigned int>& partition, unsigned int diameter, const std::vector<bool>& in_partition, const double average) const;
 		
 		/**
 		 * Computes the average value of a partition
@@ -346,6 +365,15 @@ class SliceTree: public GraphCompressionAlgorithm
 		void compute_difference_coefficients();
 		
 		/**
+		 * Clears all the partition in the slice tree 
+		 * recursivelly.
+		 * @param 
+		 * @return
+		 * @throws
+		**/
+		void clear_partitions();
+	
+		/**
 		 * Computes the size of a slice tree node in bytes
 		 * It is important to notice that his size is theoretical
 		 * in the sense that I'm assuming there is a minimal representation
@@ -374,7 +402,158 @@ class SliceTree: public GraphCompressionAlgorithm
 		{
 			return 2 + (int)floor((float) (budget - size_node(num_vertices, diameter) - SIZE_FLOAT_INT) / size_node(num_vertices, diameter));
 		}
+};
 
+class SliceTreeSamp: public SliceTree
+{
+	public:	
+		/**
+		 * Constructor. 
+		 * @param graph graph 
+		 * @param budget budget
+		 * @return 
+		 * @throws 
+		**/
+		SliceTreeSamp(Graph& _graph):
+			SliceTree(_graph)
+		{
+			delta = 0.9; 
+			rho = 1;
+			theta = compute_theta();
+			num_samples = 0;
+			
+			dist_near_center.reserve(graph->size());
+			radius_near_center.reserve(graph->size());
+			dist_center_part.reserve(graph->size());
+			radius_part.reserve(graph->size());
+
+			for(unsigned int v = 0; v < graph->size(); v++)
+			{
+				dist_near_center.at(v) = std::numeric_limits<unsigned int>::max();
+				radius_near_center.at(v) = std::numeric_limits<unsigned int>::max();
+				dist_center_part.at(v) = std::numeric_limits<unsigned int>::max();
+				radius_part.at(v) =  std::numeric_limits<unsigned int>::max();
+			}
+		}
+
+		SliceTreeSamp(Graph& _graph, const double _delta, const double _rho,
+			const unsigned int _num_samples):
+			SliceTree(_graph)
+		{
+			delta = _delta;
+			rho = _rho;
+			theta = compute_theta();
+			num_samples = _num_samples;
+			
+			dist_near_center.reserve(graph->size());
+			radius_near_center.reserve(graph->size());
+			dist_center_part.reserve(graph->size());
+			radius_part.reserve(graph->size());
+
+			for(unsigned int v = 0; v < graph->size(); v++)
+			{
+				dist_near_center.at(v) = UINT_MAX;
+				radius_near_center.at(v) = UINT_MAX;
+				dist_center_part.at(v) = UINT_MAX;
+				radius_part.at(v) =  UINT_MAX;
+			}
+		}
+		
+		/**
+		 * Constructor. 
+		 * @param input_file_name serialized graph with compressed data 
+		 * @param graph graph
+		 * @return 
+		 * @throws 
+		**/
+		SliceTreeSamp(const std::string& input_file_name, Graph& graph):
+			SliceTree(input_file_name, graph){;}
+		
+		/**
+		 * Destructor
+		 * @param
+		 * @return
+		 * @throws
+		**/
+		virtual ~SliceTreeSamp(){;}
+	protected:
+		double delta;
+		double rho;
+		double theta;
+		unsigned int num_samples;
+		void optimal_cut(st_node_t* st_node) const;
+		double compute_theta();
+		std::vector<unsigned int> dist_near_center;
+		std::vector<unsigned int> dist_center_part;
+		std::vector<unsigned int> radius_near_center;
+		std::vector<unsigned int> radius_part;
+		void upper_bound_error_reduction(
+			std::vector<up_bound_t*>& upper_bounds,
+			const unsigned int center,
+		  	const std::vector<unsigned int>& partition,
+		        const unsigned int diameter, 
+		        const std::vector<bool>& in_partition, 
+		        const double average) const;
+		const unsigned lower_bound_size_partition(
+			const unsigned int center,
+		        const unsigned int radius,
+		        const std::vector<unsigned int>& partition) const;
+		const unsigned int upper_bound_size_partition(const unsigned int center,
+		         const unsigned int radius, 
+			 const std::vector<unsigned int>& partition) const;
+		const unsigned int lower_bound_size_comp_partition(
+			const unsigned int center,
+			const unsigned int radius, 
+			const std::vector<unsigned int>& partition) const;
+		const bool split_partition(st_node_t* st_node);
+		double upper_bound_error_reduction_mean_estimate(
+			const unsigned int center, const unsigned int radius,
+		  	const std::vector<unsigned int>& partition,
+		   	const double average, const double weighted_mean, 
+			const unsigned int num_samples_part) const;
+		double upper_bound_error_reduction_num_samples
+			(const unsigned int center, const unsigned int radius,
+			const std::vector<unsigned int>& partition,
+			const unsigned int num_samples_part) const
+		{
+			return std::numeric_limits<double>::max();
+		}
+};
+
+class SliceTreeBiasSamp: public SliceTreeSamp
+{
+	public:
+//		SliceTreeBiasSamp(Graph& _graph):
+//			SliceTreeSamp(_graph){;}
+		
+		SliceTreeBiasSamp(Graph& _graph, const double _delta, const double _rho,
+			const unsigned int _num_samples):
+			SliceTreeSamp(_graph, _delta, _rho, _num_samples){;}
+
+		virtual ~SliceTreeBiasSamp(){;}
+	private:
+		double upper_bound_error_reduction_num_samples
+			(const unsigned int center, const unsigned int radius,
+			const std::vector<unsigned int>& partition,
+			const unsigned int num_samples_part) const;
+};
+
+class SliceTreeUnifSamp: public SliceTreeSamp
+{
+	public:
+//		SliceTreeUnifSamp(Graph& _graph):
+//			SliceTreeSamp(_graph){;}
+		
+		SliceTreeUnifSamp(Graph& _graph, const double _delta, const double _rho,
+			const unsigned int _num_samples):
+			SliceTreeSamp(_graph, _delta, _rho, _num_samples){;}
+
+		virtual ~SliceTreeUnifSamp(){;}
+	private:
+		double upper_bound_error_reduction_num_samples
+			(const unsigned int center, const unsigned int radius,
+			const std::vector<unsigned int>& partition,
+			const unsigned int num_samples_part) const;
 };
 
 /**

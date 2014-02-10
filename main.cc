@@ -39,11 +39,14 @@ int main(int argc, char** argv)
 	
 	/*Setting the compression algorithms*/
 	std::vector<std::string> compression_algorithms;
-	compression_algorithms.push_back("ST");	//Slice Tree
-	compression_algorithms.push_back("AL");	//Average Linkage
-	compression_algorithms.push_back("WV");	//Wavelets
-	Parameters::set_compression_algorithms(compression_algorithms);
+	compression_algorithms.push_back("ST");	  //Standard Slice Tree
+	compression_algorithms.push_back("STUS"); //Slice Tree with Uniform Sampling
+	compression_algorithms.push_back("STBS"); //Slice Tree with Biased Sampling
+	compression_algorithms.push_back("AL");	  //Average Linkage
+	compression_algorithms.push_back("WV");	  //Wavelets
 	
+	Parameters::set_compression_algorithms(compression_algorithms);
+
 	double sse;
 	double sse_reduction;
 	double compression_rate;
@@ -57,56 +60,108 @@ int main(int argc, char** argv)
 	double peak_signal_to_noise_ratio;
 	ExecTime* exec_time_distance_str = new ExecTime();
 	GraphCompressionAlgorithm* alg;
-	
+
 	/*Reading the input parameters*/
 	if(Parameters::read(argc,argv))
 	{
 		/*Reading input graph with values*/
 		Graph* graph = new Graph(Parameters::graph_file_name, Parameters::values_file_name);
-
-		//FIXME graph->partition_graph(10000);
-		//exit(1);
 		
-		if(Parameters::num_samples > 0 && Parameters::num_samples < graph->size())
+		if(Parameters::compression_algorithm == "")
 		{
-			graph->set_sample(Parameters::num_samples);
+			graph->pre_compute_partition_sizes(Parameters::num_threads, 
+				Parameters::partition_sizes_file_name);
 		}
-	
+		else
+		{
+			graph->read_partition_sizes(Parameters::partition_sizes_file_name);
+		}
+
 		/*Performing GraphCompression*/
 		if(Parameters::compression_algorithm == "ST")
 		{
-			if(Parameters::num_samples > 0 && Parameters::num_samples < graph->size())
-			{
-				/*Slice tree with sampling*/
-				exec_time_distance_str->start();
-				/*Slice tree requires the distance structure*/
-				graph->build_distance_str_slice_tree_sample();
-				exec_time_distance_str->stop();
-				distance_str_time = exec_time_distance_str->get_seconds();
-			}
-			else
-			{
-				/*Slice tree without sampling*/
-				exec_time_distance_str->start();
-				/*Slice tree requires the distance structure*/
-				graph->build_distance_str_slice_tree();
-				exec_time_distance_str->stop();
-				distance_str_time = exec_time_distance_str->get_seconds();
-			}
+			/*Standard slice tree*/
+			exec_time_distance_str->start();
+			/*Slice tree requires the distance structure*/
+			graph->build_distance_str_slice_tree();
+			exec_time_distance_str->stop();
+			distance_str_time = exec_time_distance_str->get_seconds();
 			
-			if(Parameters::budget.size())
+			if(Parameters::budget > 0)
 			{
 				alg = new SliceTree(*graph); 
-				GraphCompression::compress(*graph, *alg, Parameters::budget[0], 
+				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
 			else
 			{
 				unsigned int budget_from_num_partitions = 
-					SliceTree::budget(Parameters::num_partitions[0], 
+					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
 				alg = new SliceTree(*graph); 
+				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
+					Parameters::output_file_name);
+			}
+		}
+		
+		if(Parameters::compression_algorithm == "STUS")
+		{
+			/*Slice tree with uniform sampling*/
+			graph->set_sample(Parameters::num_samples);
+			
+			exec_time_distance_str->start();
+			/*Slice tree requires the distance structure*/
+			graph->build_distance_str_slice_tree_sample();
+			exec_time_distance_str->stop();
+			distance_str_time = exec_time_distance_str->get_seconds();
+
+			if(Parameters::budget > 0)
+			{
+				alg = new SliceTreeUnifSamp(*graph, Parameters::delta,
+					Parameters::rho, Parameters::num_samples); 
+				GraphCompression::compress(*graph, *alg, Parameters::budget, 
+					Parameters::output_file_name);
+			}
+			else
+			{
+				unsigned int budget_from_num_partitions = 
+					SliceTree::budget(Parameters::num_partitions, 
+					*graph);
+				
+				alg = new SliceTreeUnifSamp(*graph, Parameters::delta, 
+					Parameters::rho, Parameters::num_samples); 
+				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
+					Parameters::output_file_name);
+			}
+		}
+		
+		if(Parameters::compression_algorithm == "STBS")
+		{
+			/*Slice tree with biased sampling*/
+			graph->set_biased_sample(Parameters::num_samples);
+			
+			exec_time_distance_str->start();
+			/*Slice tree requires the distance structure*/
+			graph->build_distance_str_slice_tree();
+			exec_time_distance_str->stop();
+			distance_str_time = exec_time_distance_str->get_seconds();
+
+			if(Parameters::budget > 0)
+			{
+				alg = new SliceTreeBiasSamp(*graph, Parameters::delta,
+					Parameters::rho, Parameters::num_samples); 
+				GraphCompression::compress(*graph, *alg, Parameters::budget, 
+					Parameters::output_file_name);
+			}
+			else
+			{
+				unsigned int budget_from_num_partitions = 
+					SliceTree::budget(Parameters::num_partitions, 
+					*graph);
+				
+				alg = new SliceTreeBiasSamp(*graph, Parameters::delta, 
+					Parameters::rho, Parameters::num_samples); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
@@ -120,16 +175,16 @@ int main(int argc, char** argv)
 			exec_time_distance_str->stop();
 			distance_str_time = exec_time_distance_str->get_seconds();
 			
-			if(Parameters::budget.size())
+			if(Parameters::budget > 0)
 			{
 				alg = new AverageLinkage(*graph);
-				GraphCompression::compress(*graph, *alg, Parameters::budget[0], 
+				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
 			else
 			{
 				unsigned int budget_from_num_partitions = 
-					SliceTree::budget(Parameters::num_partitions[0], 
+					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
 				alg = new AverageLinkage(*graph);
@@ -147,21 +202,18 @@ int main(int argc, char** argv)
 			exec_time_distance_str->stop();
 			distance_str_time = exec_time_distance_str->get_seconds();
 			
-			if(Parameters::budget.size())
+			if(Parameters::budget > 0)
 			{
 				alg = new Wavelets(*graph);
-				GraphCompression::compress(*graph, *alg, Parameters::budget[0], 
+				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
 			else
 			{
-				/*We need the diameter of the graph to measure the
-				* number of bytes necessary to represent a partition
-				* in slice tree*/
 				graph->build_distance_matrix();
 				
 				unsigned int budget_from_num_partitions = 
-					SliceTree::budget(Parameters::num_partitions[0], 
+					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				alg = new Wavelets(*graph);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
@@ -169,41 +221,32 @@ int main(int argc, char** argv)
 			}
 		}
 
-		sse = GraphCompression::sse();
-		sse_reduction = GraphCompression::sse_reduction();
-		compression_rate = GraphCompression::compression_rate();
-		compression_time = GraphCompression::compression_time();
-		num_partitions = GraphCompression::num_partitions();
-		budget = GraphCompression::budget();
-		normalized_sse = GraphCompression::normalized_sse();
-		root_mean_squared_error = 
-			GraphCompression::root_mean_squared_error();
-		maximum_pointwise_error = 
-			GraphCompression::maximum_pointwise_error();
-		peak_signal_to_noise_ratio = 
-			GraphCompression::peak_signal_to_noise_ratio();
+		if(Parameters::compression_algorithm != "")
+		{
+			sse = GraphCompression::sse();
+			sse_reduction = GraphCompression::sse_reduction();
+			compression_rate = GraphCompression::compression_rate();
+			compression_time = GraphCompression::compression_time();
+			num_partitions = GraphCompression::num_partitions();
+			budget = GraphCompression::budget();
 		
-		/*Statistics printed as output*/
-		std::cout << "budget = " << budget << std::endl;
-		std::cout << "sse = " << sse << std::endl;
-		std::cout << "sse_reduction = " <<  sse_reduction << std::endl;
-		std::cout << "normalized_sse = " << normalized_sse << std::endl; 
-		std::cout << "root_mean_squared_error = " 
-			<< root_mean_squared_error << std::endl; 
-		std::cout << "maximum_pointwise_error = " 
-			<< maximum_pointwise_error << std::endl; 
-		std::cout << "peak_signal_to_noise_ratio = "
-			<< peak_signal_to_noise_ratio << std::endl; 
-		std::cout << "compression_rate = " << compression_rate << std::endl;
-		std::cout << "compression_time = " << compression_time << std::endl;
-		std::cout << "distance_computation_time = " << distance_str_time << std::endl;
-		
+			/*Statistics printed as output*/
+			std::cout << "budget = " << budget << std::endl;
+			std::cout << "sse = " << sse << std::endl;
+			std::cout << "sse_reduction = " <<  sse_reduction << std::endl;
+			std::cout << "compression_rate = " << compression_rate << std::endl;
+			std::cout << "compression_time = " << compression_time << std::endl;
+			std::cout << "num_partitions = " << num_partitions << std::endl;
+			
+			delete alg;
+		}
+
 		delete graph;
-		delete alg;
 	}
 
 	delete exec_time_distance_str;
 
 	return 0;
 }
+
 

@@ -23,6 +23,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <list>
 #include <queue>
 #include <cmath>
+#include <pthread.h>
+#include <stdio.h>
 
 /*my includes*/
 #include "graph.h"
@@ -39,7 +41,11 @@ Graph::Graph(const std::string& graph_file_name, const std::string& values_file_
 	read_graph(graph_file_name, values_file_name);
 	graph_diameter = 0;
 	distance_matrix = NULL;
-	num_edges = 0;
+	biased_sampling = false;
+	uniform_sampling = false;
+	num_samples = 0;
+	sum_values = 0;
+	sum_weights = 0;
 }
 
 /**
@@ -54,7 +60,11 @@ Graph::Graph(const std::string& graph_file_name) throw (std::ios_base::failure)
 	read_graph(graph_file_name);
 	graph_diameter = 0;
 	distance_matrix = NULL;
-	num_edges = 0;
+	biased_sampling = false;
+	uniform_sampling = false;
+	num_samples = 0;
+	sum_values = 0;
+	sum_weights = 0;
 }
 
 /**
@@ -148,11 +158,6 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 		adjacency_list[vertex_ids[vertex_one]]->push_back(vertex_ids[vertex_two]);
 		adjacency_list[vertex_ids[vertex_two]]->push_back(vertex_ids[vertex_one]);
 
-		if(vertex_ids[vertex_one] > vertex_ids[vertex_two])
-		{
-			num_edges++;
-		}
-		
 		std::getline(input_graph_file, line_str);
 	}
 	
@@ -228,99 +233,10 @@ void Graph::read_graph(const std::string& graph_file_name) throw (std::ios_base:
 		adjacency_list[vertex_ids[vertex_one]]->push_back(vertex_ids[vertex_two]);
 		adjacency_list[vertex_ids[vertex_two]]->push_back(vertex_ids[vertex_one]);
 		
-		if(vertex_ids[vertex_one] > vertex_ids[vertex_two])
-		{
-			num_edges++;
-		}
-		
 		std::getline(input_graph_file, line_str);
 	}
 
 	input_graph_file.close();
-}
-
-/**
- * Partitions the graph by removing edges until no partitions has size
- * larger than max_size_partition.
- * @param max_size_partition max size partition
- * @return
- * @throws
-**/
-void Graph::partition_graph(const unsigned int max_size_partition)
-{
-	std::vector<edge_t*> candidate_edges;
-	candidate_edges.reserve(num_edges);
-	edge_t* edge;
-	unsigned int u;
-
-	for(unsigned int v = 0; v < adjacency_list.size(); v++)
-	{
-		for (std::list<unsigned int>::iterator it = adjacency_list[v]->begin(); 
-			it != adjacency_list[v]->end(); ++it)
-		{
-			u = *it;
-
-			if(v > u)
-			{
-				edge = new edge_t;
-				edge->v_one = v;
-				edge->v_two = u;
-
-				edge->difference = fabs(value(v) - value(u));
-
-				candidate_edges.push_back(edge);
-			}
-		}
-	}
-
-	std::sort(candidate_edges.begin(), candidate_edges.end(), CompareEdges());
-	unsigned size_largest = size();
-
-	for(unsigned int e = 0; e < candidate_edges.size(); e++)
-	{
-		remove_edge(candidate_edges.at(e));
-		
-		if(e % (size_largest-max_size_partition) == 0)
-		{
-			size_largest = size_largest_connected_component();
-		}
-		
-		std::cout << "size_largest = " << size_largest << std::endl;
-
-		if(size_largest <= max_size_partition)
-		{
-			break;
-		}
-	}
-}
-
-void Graph::remove_edge(const edge_t* edge)
-{
-	unsigned int u;
-
-	for (std::list<unsigned int>::iterator it = adjacency_list[edge->v_one]->begin(); 
-		it != adjacency_list[edge->v_one]->end(); ++it)
-	{
-		u = *it;
-
-		if(u == edge->v_two)
-		{
-			adjacency_list[edge->v_one]->erase(it);
-			break;
-		}
-	}
-	
-	for (std::list<unsigned int>::iterator it = adjacency_list[edge->v_two]->begin(); 
-		it != adjacency_list[edge->v_two]->end(); ++it)
-	{
-		u = *it;
-
-		if(u == edge->v_one)
-		{
-			adjacency_list[edge->v_two]->erase(it);
-			break;
-		}
-	}
 }
 
 /**
@@ -375,6 +291,31 @@ unsigned int Graph::count_vertices(const std::string& values_file_name) const
 }
 
 /**
+ * Prints the slice tree distance structure
+ * @param 
+ * @return 
+ * @throws 
+**/
+void Graph::print_distance_str_slice_tree()
+{
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		std::cout << v;
+		for(unsigned int d = 0; d < distance_str.at(v)->size(); d++)
+		{
+			for (std::list<unsigned int>::iterator it = 
+				distance_str.at(v)->at(d)->begin(); 
+				it != distance_str.at(v)->at(d)->end(); 
+				++it)
+			{
+				std::cout << " " << *it << "(" << d << ")";
+			}
+		}
+		std::cout << std::endl;
+	}
+}
+
+/**
  * Builds a distance structure for the graph, this structure 
  * efficiently returns the list of vertices at a given distance
  * from a certain vertex
@@ -398,10 +339,12 @@ void Graph::build_distance_str_slice_tree()
 	std::queue<unsigned int> queue;
 	unsigned int u;
 	unsigned int z;
-	unsigned int max_distance = 0;
+	unsigned int max_distance;
 	       
 	for(unsigned int v = 0; v < num_vertices; v++)
 	{
+		max_distance = 0;
+
 		for(u = 0; u < num_vertices; u++)
 		{
 			distances[u] = UINT_MAX;
@@ -454,13 +397,74 @@ void Graph::build_distance_str_slice_tree()
 			{
 				distance_str[v]->at(distances[u])->push_back(u);
 			}
-			else
-			{
-				std::cerr << "graph_compression: The graph is not connected. Slice tree works only for connected graphs." << std::endl;
-				exit(1);
-			}
 		}
 	} 
+}
+/**
+ * Builds the distance structure for a single center
+ * @param center center
+ * @param vertices_at_distance structure
+ * @return
+ * @throws
+**/
+void Graph::build_distance_str_slice_tree_vertex(unsigned int center, 
+	std::vector<std::list<unsigned int>*>& 
+	vertices_at_distance) const
+{
+	std::vector<unsigned int> distances;
+	distances.reserve(size());
+	
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		distances.push_back(UINT_MAX);
+	}
+
+	std::queue<unsigned int> queue;
+	unsigned int u;
+	unsigned int z;
+	unsigned int max_distance = 0;
+	       
+	distances[center] = 0;
+	queue.push(center);
+		
+	while(! queue.empty())
+	{
+		u = queue.front();
+		queue.pop();
+			
+		for (std::list<unsigned int>::iterator it = adjacency_list[u]->begin(); 
+			it != adjacency_list[u]->end(); ++it)
+		{
+			z = *it;
+
+			if(distances[z] > distances[u] + 1)
+			{
+				distances[z] = distances[u] + 1;
+					
+				queue.push(z);
+			}
+		}
+	}
+	
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		if(distances[v] > max_distance)
+		{
+			max_distance = distances[v];
+		}
+	}
+
+	vertices_at_distance.reserve(max_distance+1);
+					
+	for(unsigned int d = 0; d <= max_distance; d++)
+	{
+		vertices_at_distance.push_back(new std::list<unsigned int>);
+	}
+
+	for(u = 0; u < size(); u++)
+	{
+		vertices_at_distance.at(distances[u])->push_back(u);
+	}
 }
 
 /**
@@ -488,11 +492,13 @@ void Graph::build_distance_str_slice_tree_sample()
 	std::queue<unsigned int> queue;
 	unsigned int u;
 	unsigned int z;
-	unsigned int max_distance = 0;
-	       
+	unsigned int max_distance;
+	
 	for (std::list<unsigned int>::iterator v = samples.begin(); 
 		v != samples.end(); ++v)
 	{
+		max_distance = 0;
+
 		for(u = 0; u < num_vertices; u++)
 		{
 			distances[u] = UINT_MAX;
@@ -541,11 +547,6 @@ void Graph::build_distance_str_slice_tree_sample()
 				}
 	
 				distance_str[u]->at(distances[u])->push_back(*v);
-			}
-			else
-			{
-				std::cerr << "graph_compression: The graph is not connected. Slice tree works only for connected graphs." << std::endl;
-				exit(1);
 			}
 		}
 		
@@ -640,6 +641,7 @@ void Graph::build_distance_matrix()
 void Graph::bounded_bfs(std::vector<unsigned int>& visited, const unsigned int center,
 	const unsigned int radius, const std::vector<bool>& bitmap) const
 {
+	
 	std::vector<unsigned int> distances;
 	distances.reserve(size());
 
@@ -684,16 +686,30 @@ void Graph::bounded_bfs(std::vector<unsigned int>& visited, const unsigned int c
 	}
 }
 
-const unsigned int Graph::bfs(const unsigned root, unsigned int& num_visited, std::vector<bool>& visited)
+void Graph::update_partition_size_structs(
+	const unsigned int center, 
+	const unsigned int radius, 
+	std::vector<unsigned int>& dist_near_center, 
+	std::vector<unsigned int>& dist_center_part, 
+	std::vector<unsigned int>& radius_near_center, 
+	std::vector<unsigned int>& radius_part,
+	const std::vector<bool>& bitmap) const
 {
-	unsigned int size_component = 1;
+	std::vector<unsigned int> distances;
+	distances.reserve(size());
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		distances.push_back(UINT_MAX);
+	}
+
 	std::queue<unsigned int> queue;
 	unsigned int u;
 	unsigned int z;
 	
-	queue.push(root);
-	visited.at(root) = true;
-
+	distances[center] = 0;
+	queue.push(center);
+	
 	while(! queue.empty())
 	{
 		u = queue.front();
@@ -704,50 +720,38 @@ const unsigned int Graph::bfs(const unsigned root, unsigned int& num_visited, st
 		{
 			z = *it;
 
-			if(! visited.at(z))
+			if(distances[z] > distances[u] + 1)
 			{
+				distances[z] = distances[u] + 1;
 				queue.push(z);
-				visited.at(z) = true;
-				size_component++;
 			}
 		}
 	}
-	
-	num_visited = num_visited + size_component;
 
-	return size_component;
-}
-
-const unsigned int Graph::size_largest_connected_component()
-{
-	std::vector<bool> visited;
-	visited.reserve(size());
-	unsigned int num_visited = 0;
-	unsigned int size_component;
-	unsigned int size_largest = 0;
-
-	for(unsigned int v = 0; v < size(); v++)
+	for(unsigned int v = 0; v < distances.size(); v++)
 	{
-		visited.push_back(false);
-	}
-
-	while(num_visited < size())
-	{
-		for(unsigned int v = 0; v < size(); v++)
+		if(bitmap.at(v))
 		{
-			if(! visited.at(v))
+			if(distances.at(v) <= radius)
 			{
-				size_component = bfs(v, num_visited, visited);
-
-				if(size_component > size_largest)
+				if(radius - distances.at(v) < 
+					dist_center_part.at(v) - radius_part.at(v))
 				{
-					size_largest = size_component;
+					dist_center_part.at(v) = distances.at(v);
+					radius_part.at(v) = radius;
+				}
+			}
+			else
+			{
+				if(distances.at(v) - radius < 
+					dist_near_center.at(v) - radius_near_center.at(v))
+				{
+					dist_near_center.at(v) = distances.at(v);
+					radius_near_center.at(v) = radius;
 				}
 			}
 		}
 	}
-
-	return size_largest;
 }
 
 /**
@@ -870,31 +874,342 @@ unsigned int random_int(const unsigned int limit)
 }
 
 /**
- * Selects a set of vertices as random samples from the graph
+ * Generates a random double between the interval [0, 1]
+ * @param limit limit
+ * @return random int
+ * @throws
+**/
+double random_double()
+{
+	return (double) rand() / RAND_MAX;
+}
+
+/**
+ * Selects a set of vertices as random samples 
+ * (without replacement) from the graph
  * @param num_samples number of samples
  * @return
  * @throws 
 **/
-void Graph::set_sample(const unsigned int num_samples)
+void Graph::set_sample(const unsigned int _num_samples)
 {
+	uniform_sampling = true;
 	srand (time(NULL));
-	bitmap_sample.reserve(size());
+	num_samples = _num_samples;
+
 	unsigned int sample;
 
 	for(unsigned int v = 0; v < size(); v++)
 	{
-		bitmap_sample.push_back(false);
+		count_sample.push_back(0);
 	}
 
 	while(samples.size() < num_samples && samples.size() < size())
 	{
 		sample = random_int(size());
 
-		if(! bitmap_sample.at(sample))
+		if(! count_sample.at(sample))
 		{
-			bitmap_sample.at(sample) = true;
 			samples.push_back(sample);
 		}
+		
+		sum_values += vertex_values.at(sample);
+		count_sample.at(sample)++;
+	}
+
+	sum_weights = _num_samples;
+}
+
+/**
+ * Selects a set of biased vertices from the graph according to |v-mu|
+ * @param num_samples number of samples
+ * @return
+ * @throws
+**/
+void Graph::set_biased_sample(const unsigned int _num_samples)
+{
+	biased_sampling = true;
+	srand (time(NULL));
+	count_sample.reserve(size());
+	num_samples = _num_samples;
+
+	unsigned int sample;
+	std::vector<float> selection_prob;
+	mu = 0;
+	lambda = 0;
+	double rd;
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		count_sample.push_back(0);
+		selection_prob.push_back(0);
+
+		mu += vertex_values.at(v);
+	}
+	
+	mu = (float) mu / size();
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		selection_prob.at(v) = fabs(vertex_values.at(v) - mu);
+		lambda +=  fabs(vertex_values.at(v) - mu);
+	}
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		selection_prob.at(v) /= lambda;
+
+		if(v > 0)
+		{
+			selection_prob.at(v) += selection_prob.at(v-1);
+		}
+	}
+
+	for(unsigned int i = 0; i < num_samples; i++)
+	{
+		rd = random_double();
+		sample = 0;
+		
+		while(selection_prob.at(sample) < rd && sample < size()) sample++;
+		
+		count_sample.at(sample) += 1;
+		sum_values += vertex_values.at(sample);
+		sum_weights += (double) lambda / fabs(vertex_values.at(sample) - mu);
+
+		if(count_sample.at(sample) == 1) samples.push_back(sample);
 	}
 }
+
+/**
+ * Prints the graph (for debugging purposes)
+ * @param
+ * @return
+ * @throws 
+**/
+void Graph::print()
+{
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		std::cout << name(v) << "(" << value(v) << "):";
+		
+		for (std::list<unsigned int>::iterator it = adjacency_list[v]->begin(); 
+			it != adjacency_list[v]->end(); ++it)
+		{
+			std::cout << " " << *it;
+		}
+
+		std::cout << std::endl;
+	}
+}
+
+void build_distance_str(const unsigned int root, 
+	 std::vector<std::vector<unsigned int>*>& partition_sizes, 
+	 std::vector< std::list<unsigned int>* >& adjacency_list)
+{
+	std::queue<unsigned int> queue;
+	unsigned int z;
+	unsigned int max_distance = 0;
+	std::vector<unsigned int> distances;
+	distances.reserve(adjacency_list.size());
+
+	for(unsigned int u = 0; u < adjacency_list.size(); u++)
+	{
+		distances.push_back(UINT_MAX);
+	}
+
+	/*Distances are computed using BFS*/
+	distances[root] = 0;
+	queue.push(root);
+	unsigned int u;
+
+	while(! queue.empty())
+	{
+		u = queue.front();
+		queue.pop();
+			
+		for (std::list<unsigned int>::iterator it = adjacency_list[u]->begin(); 
+			it != adjacency_list[u]->end(); ++it)
+		{
+			z = *it;
+
+			if(distances[z] > distances[u] + 1)
+			{
+				distances[z] = distances[u] + 1;
+				queue.push(z);
+			}
+		}
+	}
+	
+	for(u = 0; u < adjacency_list.size(); u++)
+	{
+		if(distances[u] > max_distance)
+		{
+			max_distance = distances[u];
+		}
+	}
+	
+	partition_sizes.at(root)->reserve(max_distance+1);
+
+	for(u = 0; u <= max_distance; u++)
+	{
+		partition_sizes.at(root)->push_back(0);
+	}
+
+	for(u = 0; u < adjacency_list.size(); u++)
+	{
+		partition_sizes.at(root)->at(distances[u])++;
+	} 
+	
+	for(u = 1; u <= max_distance; u++)
+	{
+		partition_sizes.at(root)->at(u) += partition_sizes.at(root)->at(u-1);
+		;
+	}
+}
+
+void run_thread(std::list<unsigned int>* pool, 
+	std::vector< std::list<unsigned int>* >* adjacency_list, 
+	pthread_mutex_t* mutex_pool, 
+	std::vector<std::vector<unsigned int>*>* partition_sizes)
+{
+	unsigned int vertex;
+	
+	while(true)
+	{
+		pthread_mutex_lock(mutex_pool);
+		
+		if(pool->empty())
+		{
+			pthread_mutex_unlock(mutex_pool);
+			break;
+		}
+		else
+		{
+			vertex = pool->front();
+			pool->pop_front();
+			pthread_mutex_unlock(mutex_pool);
+		}
+
+		build_distance_str(vertex, *partition_sizes, *adjacency_list);
+	}
+}
+
+void* start_thread(void* v_parameter)
+{
+	PthreadParameters* parameter = (PthreadParameters*) v_parameter;
+	run_thread(parameter->pool, parameter->adjacency_list, parameter->mutex_pool, 
+		 parameter->partition_sizes);
+	pthread_exit(NULL);
+}
+
+/**
+ * Pre-computes the partitions sizes for all centers and radius
+ * and saves them in a file. Uses multiple threads to speed up
+ * the computations.
+ * @param num_threads number of threads available
+ * @param output_file_name output file
+ * @return
+ * @throws
+**/
+void Graph::pre_compute_partition_sizes(const unsigned int num_threads, 
+	const std::string& output_file_name)
+{
+	std::vector<PthreadParameters*> parameters;
+	parameters.reserve(num_threads);
+	PthreadParameters* parameter;
+	std::list<unsigned int> pool;
+	partition_sizes.reserve(size());
+
+	pthread_mutex_t* mutex_pool = new pthread_mutex_t;
+	pthread_mutex_init(mutex_pool, NULL);
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		pool.push_back(v);
+		partition_sizes.push_back(new std::vector<unsigned int>);
+	}
+
+	pthread_t* threads = (pthread_t*) malloc (num_threads * sizeof(pthread_t));
+
+	for(unsigned int t = 0; t < num_threads; t++)
+	{
+		parameter = new PthreadParameters;
+		
+		parameter->adjacency_list = &adjacency_list;
+		parameter->mutex_pool = mutex_pool;
+		parameter->pool = &pool;
+		parameter->partition_sizes = &partition_sizes;
+		parameters.push_back(parameter);
+
+		pthread_create(&threads[t], NULL, start_thread, parameter);
+	}
+
+ 	for(unsigned int i = 0; i < num_threads; i++)
+	{
+ 		pthread_join(threads[i], NULL);
+	}
+	
+	for(unsigned int i = 0; i < num_threads; i++)
+	{
+		delete parameters[i];
+	}
+
+	free(threads);
+
+	std::ofstream output_file(output_file_name.c_str());
+	
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		output_file << v;
+		
+		for(unsigned int d = 0; d < partition_sizes.at(v)->size(); d++)
+		{
+			output_file << "," << partition_sizes.at(v)->at(d);
+		}
+		
+		output_file << "\n";
+	}
+
+	output_file.close();
+}
+
+/**
+ * Reads the pre-computed partition sizes from a file.
+ * @param input_file_name input file
+ * @return
+ * @throws
+**/
+void Graph::read_partition_sizes(const std::string& input_file_name)
+{
+	std::ifstream input_file(input_file_name.c_str());
+	partition_sizes.reserve(size());
+	unsigned int i = 0;
+	std::vector< std:: string > line_vec;
+	std::string line_str;
+	
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		partition_sizes.push_back(new std::vector<unsigned int>);
+	}
+	
+	std::getline(input_file, line_str);
+	
+	while(! input_file.eof())
+	{
+		line_vec = split(line_str,',');
+		
+		partition_sizes.at(i)->reserve(line_vec.size()-1);
+		
+		for(unsigned int j = 1; j < line_vec.size(); j++)
+		{
+			partition_sizes.at(i)->push_back(atoi(line_vec.at(j).c_str()));
+		}
+
+		std::getline(input_file, line_str);
+		i++;
+	}
+	
+	input_file.close();
+}
+
 
