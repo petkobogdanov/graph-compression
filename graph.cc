@@ -1197,8 +1197,6 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 		}
 		
 		output_file << "\n";
-
-		delete partition_sizes.at(v);
 	}
 
 	output_file.close();

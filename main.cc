@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 			
 			exec_time_distance_str->start();
 			/*Slice tree requires the distance structure*/
-			graph->build_distance_str_slice_tree();
+			graph->build_distance_str_slice_tree_sample();
 			exec_time_distance_str->stop();
 			distance_str_time = exec_time_distance_str->get_seconds();
 			
