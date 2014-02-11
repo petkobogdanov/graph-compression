@@ -652,8 +652,8 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	std::sort(upper_bounds.begin(), upper_bounds.end(), CompareUpperBounds());
 
 	double opt_reduction = -1*std::numeric_limits<double>::max();
-	double opt_center = st_node->partition.at(0);
-	double opt_radius = 0;
+	unsigned int opt_center = st_node->partition.at(0);
+	unsigned int opt_radius = 0;
 	unsigned int s = 0;
 	
 	/*Keeps the best known slice (based on actual reduction)
