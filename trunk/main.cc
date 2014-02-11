@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 		{
 			graph->read_partition_sizes(Parameters::partition_sizes_file_name);
 		}
-
+		
 		/*Performing GraphCompression*/
 		if(Parameters::compression_algorithm == "ST")
 		{
@@ -146,7 +146,7 @@ int main(int argc, char** argv)
 			graph->build_distance_str_slice_tree();
 			exec_time_distance_str->stop();
 			distance_str_time = exec_time_distance_str->get_seconds();
-
+			
 			if(Parameters::budget > 0)
 			{
 				alg = new SliceTreeBiasSamp(*graph, Parameters::delta,
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
 					*graph);
 				
 				alg = new SliceTreeBiasSamp(*graph, Parameters::delta, 
-					Parameters::rho, Parameters::num_samples); 
+					Parameters::rho, Parameters::num_samples);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
@@ -227,7 +227,6 @@ int main(int argc, char** argv)
 			sse_reduction = GraphCompression::sse_reduction();
 			compression_rate = GraphCompression::compression_rate();
 			compression_time = GraphCompression::compression_time();
-			num_partitions = GraphCompression::num_partitions();
 			budget = GraphCompression::budget();
 		
 			/*Statistics printed as output*/
@@ -236,7 +235,6 @@ int main(int argc, char** argv)
 			std::cout << "sse_reduction = " <<  sse_reduction << std::endl;
 			std::cout << "compression_rate = " << compression_rate << std::endl;
 			std::cout << "compression_time = " << compression_time << std::endl;
-			std::cout << "num_partitions = " << num_partitions << std::endl;
 			
 			delete alg;
 		}
