@@ -261,6 +261,11 @@ Graph::~Graph()
 	{
 		delete adjacency_list[v];
 	}
+	
+	for(unsigned int v = 0; v < partition_sizes.size(); v++)
+	{
+		delete partition_sizes.at(v);
+	}
 
 	for(unsigned int v = 0; v < distance_str.size(); v++)
 	{
@@ -993,6 +998,14 @@ void Graph::set_biased_sample(const unsigned int _num_samples)
 
 		if(count_sample.at(sample) == 1) samples.push_back(sample);
 	}
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		printf("v = %d, orig_value(v) = %lf, value(v) = %lf, weight(v) = %lf, count(v) = %d\n", 
+			v, vertex_values.at(v), value(v), weight(v), count_sample.at(v));
+	}
+
+	printf("mu = %lf, lambda = %lf\n", mu, lambda);
 }
 
 /**
@@ -1170,6 +1183,7 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 	}
 
 	free(threads);
+	delete mutex_pool;
 
 	std::ofstream output_file(output_file_name.c_str());
 	
@@ -1183,6 +1197,8 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 		}
 		
 		output_file << "\n";
+
+		delete partition_sizes.at(v);
 	}
 
 	output_file.close();

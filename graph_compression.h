@@ -322,7 +322,7 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * @return 
 		 * @throws
 		**/
-		void optimal_cut(st_node_t* st_node) const;
+		virtual void optimal_cut(st_node_t* st_node) const;
 		
 		/**
 		 * Identifies the optimal radius for a given center and partition
@@ -438,10 +438,10 @@ class SliceTreeSamp: public SliceTree
 
 			for(unsigned int v = 0; v < graph->size(); v++)
 			{
-				dist_near_center.at(v) = UINT_MAX;
-				radius_near_center.at(v) = UINT_MAX;
-				dist_center_part.at(v) = UINT_MAX;
-				radius_part.at(v) =  UINT_MAX;
+				dist_near_center.push_back(UINT_MAX);
+				radius_near_center.push_back(UINT_MAX);
+				dist_center_part.push_back(UINT_MAX);
+				radius_part.push_back(UINT_MAX);
 			}
 		}
 		
@@ -567,7 +567,7 @@ class SliceTreeSamp: public SliceTree
 		 *      false, otherwise
 		 * @throws
 		**/
-		const bool split_partition(st_node_t* st_node);
+		virtual const bool split_partition(st_node_t* st_node);
 		
 		 /**
 		  * Computes a probabilistic upper bound on the error reduction of 
@@ -603,7 +603,7 @@ class SliceTreeSamp: public SliceTree
 		 * @throws 
 		 * @return upper bound.
 		**/
-		double upper_bound_error_reduction_num_samples
+		virtual double upper_bound_error_reduction_num_samples
 			(const unsigned int center, const unsigned int radius,
 			const std::vector<unsigned int>& partition,
 			const unsigned int num_samples_part) const
@@ -1087,17 +1087,6 @@ class GraphCompression
 		}
 
 		/**
-		 * Returns the number of partitions of the compression
-		 * @param 
-		 * @return number of partitions
-		 * @throws
-		 **/
-		const static unsigned int num_partitions()
-		{
-			return num_partitions_value;
-		}
-
-		/**
 		 * Returns the normalized sse of the compression
 		 * normalized sse = sse / sum values squared
 		 * @param 
@@ -1150,7 +1139,6 @@ class GraphCompression
 		static double compression_rate_value;
 		static double compression_time_value;
 		static unsigned int budget_value;
-		static unsigned int num_partitions_value;
 		static double maximum_pointwise_error_value;
 		static double peak_signal_to_noise_ratio_value;
 		static double root_mean_squared_error_value;
