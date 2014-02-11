@@ -473,14 +473,14 @@ double SliceTreeSamp::upper_bound_error_reduction_mean_estimate(
 	
 	if(bound_one > bound_two)
 	{
-		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf\n", 
-			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average);
+		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
 		return bound_one;
 	}
 	else
 	{
-		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf\n", 
-			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average);
+		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
 		return bound_two;
 	}
 }
