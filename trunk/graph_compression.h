@@ -505,7 +505,10 @@ class SliceTreeSamp: public SliceTree
 		  	const std::vector<unsigned int>& partition,
 		        const unsigned int diameter, 
 		        const std::vector<bool>& in_partition, 
-		        const double average) const;
+		        const double average,
+			const double sum_weighted_values,
+			const double sum_weights,
+			const unsigned int num_samples_part) const;
 		
 		/**
 		 * Computes a lower bound on the size of a partition. Computing the actual
@@ -555,6 +558,17 @@ class SliceTreeSamp: public SliceTree
 			const unsigned int center,
 			const unsigned int radius, 
 			const std::vector<unsigned int>& partition) const;
+
+		const unsigned int upper_bound_size_comp_partition(
+			const unsigned int center,
+			const unsigned int radius,
+			const std::vector<unsigned int>& partition) const;
+
+		double upper_bound_error_reduction_mean_estimate_out(
+			const unsigned int center, const unsigned int radius,
+			const std::vector<unsigned int>& partition,
+			const double average, const double weighted_mean,
+			const unsigned int num_samples_part) const;
 		
 		/**
 		 * Splits a partition given the center and radius defined
@@ -584,7 +598,7 @@ class SliceTreeSamp: public SliceTree
 		  * @throws 
 		  * @return upper bound.
 		 **/
-		double upper_bound_error_reduction_mean_estimate(
+		double upper_bound_error_reduction_mean_estimate_in(
 			const unsigned int center, const unsigned int radius,
 		  	const std::vector<unsigned int>& partition,
 		   	const double average, const double weighted_mean, 
