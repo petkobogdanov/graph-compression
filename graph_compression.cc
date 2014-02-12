@@ -41,17 +41,17 @@ GraphCompressionAlgorithm* GraphCompression::compression_algorithm = NULL;
 
 /**
  * Computes epsilon, as defined for hoeffding bounds.
- * @param theta range for values
  * @num_samples number of samples
  * @delta probability that the bounds don't hold
  * @return value of epsilon
  * @throws
 **/
-double compute_epsilon(double theta, unsigned int num_samples, double delta)
+double compute_epsilon_num_samples(
+	unsigned int num_samples, double delta)
 {
 	if(num_samples > 0)
 	{
-		return sqrt(-1 * (double)(pow(theta, 2) * log(delta)) / (2 * num_samples));
+		return sqrt(-1 * (double) log(delta) / (2 * num_samples));
 	}
 	else
 	{
@@ -59,6 +59,27 @@ double compute_epsilon(double theta, unsigned int num_samples, double delta)
 	}
 }
 
+/**
+ * Computes epsilon, as defined for hoeffding bounds.
+ * @param theta range for values
+ * @num_samples number of samples
+ * @delta probability that the bounds don't hold
+ * @return value of epsilon
+ * @throws
+**/
+double compute_epsilon_mean(double theta, 
+	unsigned int num_samples, double delta)
+{
+	if(num_samples > 0)
+	{
+		return sqrt(-1 * (double)(pow(theta, 2) * 
+			log((double) delta / 2)) / (2 * num_samples));
+	}
+	else
+	{
+		return  std::numeric_limits<float>::max();
+	}
+}
 /**
  * Compresses the graph using the compression algorithm
  * @param graph_to_compress graph to be compressed
@@ -457,7 +478,7 @@ double SliceTreeSamp::upper_bound_error_reduction_mean_estimate(
 	const double average, const double weighted_mean, 
 	const unsigned int num_samples_part) const
 {
-	double epsilon = compute_epsilon(theta, num_samples_part, delta);
+	double epsilon = compute_epsilon_mean(theta, num_samples_part, delta);
 	unsigned int size_partition = upper_bound_size_partition
 		(center, radius, partition);
 	unsigned int size_comp_partition = lower_bound_size_comp_partition
@@ -503,7 +524,7 @@ double SliceTreeBiasSamp::upper_bound_error_reduction_num_samples
 	const unsigned int num_samples_part) const
 {
 	double sampling_rate = (double) num_samples_part / num_samples;
-	double epsilon = compute_epsilon(1, num_samples, delta);
+	double epsilon = compute_epsilon_num_samples(num_samples, delta);
 	unsigned int size_partition = lower_bound_size_partition
 		(center, radius, partition);
 	unsigned int size_comp_partition = lower_bound_size_comp_partition
