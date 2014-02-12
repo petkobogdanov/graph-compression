@@ -644,6 +644,22 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 		max_radius = diameter + 1;
 	}
 
+	up_bound = new up_bound_t;
+	up_bound->center = center;
+	up_bound->radius = 0;
+
+	if(partition.size() - 1 > 0)
+	{
+		up_bound->value = 
+			(double)(pow(graph->orig_value(partition.at(center)) - average, 2) * partition.size()) / (partition.size() - 1);
+	}
+	else
+	{
+		up_bound->value = 0;
+	}
+	
+	upper_bounds.push_back(up_bound);
+
 	for(unsigned int r = 0; r < max_radius; r++)
 	{
 		vertices_at_dist_r = graph->vertices_at_distance
@@ -698,28 +714,31 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 		
 		upper_bound_three = upper_bound_error_reduction_num_samples
 		(partition.at(center), r, partition, num_samples_part_in);
-			
-		up_bound = new up_bound_t;
-		up_bound->center = center;
-		up_bound->radius = r;
+		
+		if(r > 0)
+		{
+			up_bound = new up_bound_t;
+			up_bound->center = center;
+			up_bound->radius = r;
 
-		if(upper_bound_one < upper_bound_two)
-		{
-			up_bound->value = upper_bound_one;
-		}
-		else
-		{
-			if(upper_bound_two < upper_bound_three)
+			if(upper_bound_one < upper_bound_two)
 			{
-				up_bound->value = upper_bound_two;
+				up_bound->value = upper_bound_one;
 			}
 			else
 			{
-				up_bound->value = upper_bound_three;
+				if(upper_bound_two < upper_bound_three)
+				{
+					up_bound->value = upper_bound_two;
+				}
+				else
+				{
+					up_bound->value = upper_bound_three;
+				}
 			}
-		}
 
-		upper_bounds.push_back(up_bound);
+			upper_bounds.push_back(up_bound);
+		}
 	}
 }
 
@@ -790,18 +809,31 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 		if(computed_centers_radius.at(upper_bounds.at(s)->center) 
 			< (int) upper_bounds.at(s)->radius)
 		{
-			/*Computing the actual error reduction*/
-			e_r = min_error_radius(
-				st_node->partition.at(upper_bounds.at(s)->center), 
-				st_node->partition, upper_bounds.at(s)->radius, 
-				st_node->in_partition, st_node->average);
-
-			if(e_r.first > opt_reduction)
+			if(upper_bounds.at(s)->radius > 0)
 			{
-				opt_reduction = e_r.first;
-				opt_radius = e_r.second;
-				opt_center = 
-					st_node->partition.at(upper_bounds.at(s)->center);
+				/*Computing the actual error reduction*/
+				e_r = min_error_radius(
+					st_node->partition.at(upper_bounds.at(s)->center), 
+					st_node->partition, upper_bounds.at(s)->radius, 
+					st_node->in_partition, st_node->average);
+
+				if(e_r.first > opt_reduction)
+				{
+					opt_reduction = e_r.first;
+					opt_radius = e_r.second;
+					opt_center = 
+						st_node->partition.at(upper_bounds.at(s)->center);
+				}
+			}
+			else
+			{
+				if(upper_bounds.at(s)->value > opt_reduction)
+				{
+					opt_reduction = upper_bounds.at(s)->value;
+					opt_radius = upper_bounds.at(s)->radius;
+					opt_center = 
+						st_node->partition.at(upper_bounds.at(s)->center);
+				}
 			}
 
 			computed_centers_radius.at(upper_bounds.at(s)->center) = 
