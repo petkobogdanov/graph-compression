@@ -144,7 +144,7 @@ void GraphCompression::compute_sse_reduction(Graph& graph)
 		initial_sse = initial_sse + pow(average-graph.orig_value(v), 2);
 	}
 
-	sse_reduction_value = (double) (initial_sse - sse_value) / initial_sse;
+	sse_reduction_value = (double) (initial_sse - sse_value);
 }
 
 /**
@@ -457,6 +457,17 @@ const unsigned int SliceTreeSamp::lower_bound_size_comp_partition(
 	}
 }
 
+/**
+ * Computes a lower bound on the size of the complement of
+ * a partition, which, basically,
+ * does not consider any intersection between slices. The value is exact only
+ * for the first slice.
+ * @param center center
+ * @param radius radius
+ * @param partition partition
+ * @throws 
+ * @return
+**/
 const unsigned int SliceTreeSamp::upper_bound_size_comp_partition(
 	const unsigned int center, 
 	const unsigned int radius, 
@@ -476,7 +487,7 @@ const unsigned int SliceTreeSamp::upper_bound_size_comp_partition(
 
 /**
  * Computes a probabilistic upper bound on the error reduction of 
- * a slice based on an estimate for the mean value in the partition,
+ * a slice based on an estimate for the mean value inside the partition,
  * which is computed using the sample. 
  * @param center center
  * @param radius radius
@@ -489,6 +500,8 @@ const unsigned int SliceTreeSamp::upper_bound_size_comp_partition(
  * @throws 
  * @return upper bound.
 **/
+
+
 double SliceTreeSamp::upper_bound_error_reduction_mean_estimate_in(
 	const unsigned int center, const unsigned int radius, 
 	const std::vector<unsigned int>& partition, 
@@ -511,17 +524,79 @@ double SliceTreeSamp::upper_bound_error_reduction_mean_estimate_in(
 	
 	if(bound_one > bound_two)
 	{
-		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
-			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+//		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
 		return bound_one;
 	}
 	else
 	{
-		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
-			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+//		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
 		return bound_two;
 	}
 }
+
+double SliceTreeSamp::lower_bound_error_reduction_mean_estimate_in(
+	const unsigned int center, const unsigned int radius, 
+	const std::vector<unsigned int>& partition, 
+	const double average, const double weighted_mean, 
+	const unsigned int num_samples_part) const
+{
+	double epsilon = compute_epsilon_mean(theta, num_samples_part, delta);
+	unsigned int size_partition = lower_bound_size_partition
+		(center, radius, partition);
+	unsigned int size_comp_partition = upper_bound_size_comp_partition
+		(center, radius, partition);
+	
+	double bound_one;
+	double bound_two;
+
+	if(average < weighted_mean + epsilon && 
+		average > weighted_mean - epsilon)
+	{
+		return 0;
+	}
+	else
+	{
+		bound_one = (double) (pow(average - weighted_mean
+			+ epsilon, 2) * size_partition * partition.size())
+			/ size_comp_partition;
+		bound_two = (double) (pow(average - weighted_mean
+			- epsilon, 2) * size_partition * partition.size())
+			/ size_comp_partition;
+	}
+
+	
+	if(bound_one < bound_two)
+	{
+//		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+		return bound_one;
+	}
+	else
+	{
+//		printf("**center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+		return bound_two;
+	}
+}
+
+/**
+ * Computes a probabilistic upper bound on the error reduction of 
+ * a slice based on an estimate for the mean value outside the partition,
+ * which is computed using the sample. 
+ * @param center center
+ * @param radius radius
+ * @param partition partition
+ * @param average partition average value
+ * @param weighted_mean weighted mean of the partition generated by
+ * the slice computed using the sample.
+ * @param num_samples_part number of samples used to compute the 
+ * weighted mean.
+ * @throws 
+ * @return upper bound.
+**/
+
 
 double SliceTreeSamp::upper_bound_error_reduction_mean_estimate_out(
 	const unsigned int center, const unsigned int radius, 
@@ -545,14 +620,58 @@ double SliceTreeSamp::upper_bound_error_reduction_mean_estimate_out(
 	
 	if(bound_one > bound_two)
 	{
-		printf("@@center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
-			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+//		printf("@@center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
 		return bound_one;
 	}
 	else
 	{
-		printf("@@center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
-			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+//		printf("@@center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+		return bound_two;
+	}
+}
+
+double SliceTreeSamp::lower_bound_error_reduction_mean_estimate_out(
+	const unsigned int center, const unsigned int radius, 
+	const std::vector<unsigned int>& partition, 
+	const double average, const double weighted_mean, 
+	const unsigned int num_samples_part) const
+{
+	double epsilon = compute_epsilon_mean(theta, num_samples_part, delta);
+	unsigned int size_partition = upper_bound_size_partition
+		(center, radius, partition);
+	unsigned int size_comp_partition = lower_bound_size_comp_partition
+		(center, radius, partition);
+	
+	double bound_one;
+	double bound_two;
+	
+	if(average < weighted_mean + epsilon && 
+		average > weighted_mean - epsilon)
+	{
+		return 0;
+	}
+	else
+	{
+		bound_one = (double) (pow(average - weighted_mean
+			+ epsilon, 2) * size_comp_partition * partition.size())
+			/ size_partition;
+		bound_two = (double) (pow(average - weighted_mean
+			- epsilon, 2) * size_comp_partition * partition.size())
+			/ size_partition;
+	}
+	
+	if(bound_one < bound_two)
+	{
+//		printf("@@center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_one, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
+		return bound_one;
+	}
+	else
+	{
+//		printf("@@center = %d, radius = %d, bound = %lf, weighted_mean = %lf, epsilon = %lf, num_samples = %d, average = %lf, size_partition = %d, size_comp_partition = %d, partition.size = %d\n", 
+//			center, radius, bound_two, weighted_mean, epsilon, num_samples_part, average, size_partition, size_comp_partition, partition.size());
 		return bound_two;
 	}
 }
@@ -585,11 +704,23 @@ double SliceTreeBiasSamp::upper_bound_error_reduction_num_samples
 		* pow(graph->get_lambda(), 2) * partition.size())
 		/ (size_partition * size_comp_partition);
 
-	printf("##center = %d, radius = %d, bound = %lf, rate = %lf, epsilon = %lf, size_partition = %d, size_complement_partition = %d, lambda = %lf\n", 
-		center, radius, bound, sampling_rate, epsilon, size_partition, size_comp_partition, graph->get_lambda());
+//	printf("##center = %d, radius = %d, bound = %lf, rate = %lf, epsilon = %lf, size_partition = %d, size_complement_partition = %d, lambda = %lf\n", 
+//		center, radius, bound, sampling_rate, epsilon, size_partition, size_comp_partition, graph->get_lambda());
 	return bound;
 }
 
+/* Computes a probabilistic upper bound on the error reduction of 
+ * a slice based on the number of vertices inside the partition sampled
+ * in a biased sample. Because this is not biased sampling, just returns
+ * a very large number.
+ * @param center center
+ * @param radius radius
+ * @param partition partition
+ * @param num_samples_part number of samples used to compute the 
+ * weighted mean.
+ * @throws 
+ * @return upper bound.
+**/
 double SliceTreeUnifSamp::upper_bound_error_reduction_num_samples
 	(const unsigned int center, const unsigned int radius, 
 	const std::vector<unsigned int>& partition, 
@@ -622,7 +753,7 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	const unsigned int num_samples_part) const
 {
 	std::list<unsigned int>* vertices_at_dist_r;
-	unsigned int max_radius = graph->max_distance(partition.at(center));
+	unsigned int max_radius = graph->max_distance(partition.at(center)) - 1;
 	double sum_weights_in = 0;
 	double sum_weighted_values_in = 0;
 	double sum_weights_out;
@@ -636,14 +767,15 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	double upper_bound_three;
 	up_bound_t* up_bound;
 	unsigned int vertex;
-	
-	max_radius = max_radius - 1;
+	double bound_value;
 	
 	if(max_radius > diameter)
 	{
 		max_radius = diameter + 1;
 	}
 
+	/*For radius = 0, we compute the actual reduction, instead of an
+	 * upper bound.*/
 	up_bound = new up_bound_t;
 	up_bound->center = center;
 	up_bound->radius = 0;
@@ -658,8 +790,8 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 		up_bound->value = 0;
 	}
 	
-	upper_bounds.push_back(up_bound);
-
+	up_bound->bounds.push_back(new std::pair<unsigned int, double>(0, up_bound->value));
+	
 	for(unsigned int r = 0; r < max_radius; r++)
 	{
 		vertices_at_dist_r = graph->vertices_at_distance
@@ -713,7 +845,7 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 				weighted_mean_out, num_samples_part_out);
 		
 		upper_bound_three = upper_bound_error_reduction_num_samples
-		(partition.at(center), r, partition, num_samples_part_in);
+			(partition.at(center), r, partition, num_samples_part_in);
 		
 		if(r > 0)
 		{
@@ -723,23 +855,33 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 
 			if(upper_bound_one < upper_bound_two)
 			{
-				up_bound->value = upper_bound_one;
+				bound_value = upper_bound_one;
 			}
 			else
 			{
 				if(upper_bound_two < upper_bound_three)
 				{
-					up_bound->value = upper_bound_two;
+					bound_value = upper_bound_two;
 				}
 				else
 				{
-					up_bound->value = upper_bound_three;
+					bound_value = upper_bound_three;
 				}
 			}
+			
+			up_bound->bounds.push_back(
+				new std::pair<unsigned int, double>
+					(r, bound_value));
 
-			upper_bounds.push_back(up_bound);
+			if(bound_value > up_bound->value)
+			{
+				up_bound->value = bound_value;
+				up_bound->radius = r;
+			}
 		}
 	}
+	
+	upper_bounds.push_back(up_bound);
 }
 
 /**
@@ -751,12 +893,87 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
  * @return
  * @throws
 **/
+/*
 void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 {
 	std::vector<up_bound_t*> upper_bounds;
 	upper_bounds.reserve(st_node->partition.size() * MAX_GRAPH_DIAMETER);
-	std::vector<int> computed_centers_radius;
-	computed_centers_radius.reserve(st_node->partition.size());
+	std::vector<int> pruned_centers_radius;
+	pruned_centers_radius.reserve(st_node->partition.size());
+	std::pair<double , unsigned int> e_r;
+	double sum_weights = 0;
+	double sum_weighted_values = 0;
+	unsigned int num_samples_part = 0;
+	
+	for(unsigned int c = 0; c < st_node->partition.size(); c++)
+	{
+		sum_weights += 
+			graph->count(st_node->partition.at(c)) 
+			* graph->weight(st_node->partition.at(c));
+		
+		sum_weighted_values += 
+			graph->count(st_node->partition.at(c)) 
+			* graph->value(st_node->partition.at(c));
+
+		num_samples_part += graph->count(st_node->partition.at(c));
+	}
+
+	for(unsigned int c = 0; c < st_node->partition.size(); c++)
+	{
+		pruned_centers_radius.push_back(-1);
+		upper_bound_error_reduction(upper_bounds, c,
+			st_node->partition, st_node->diameter, 
+			st_node->in_partition, st_node->average,
+			sum_weighted_values, sum_weights,
+			num_samples_part);
+	}
+	
+	std::list<up_bound_t*> bounds_lst;
+	unsigned int bounds_lst_size = upper_bounds.size();
+
+	for(unsigned int b = 0; b < upper_bounds.size(); b++)
+	{
+		bounds_lst.push_back(upper_bounds.at(b));
+	}
+
+	std::sort(upper_bounds.begin(), upper_bounds.end(), CompareUpperBounds());
+
+	double opt_reduction = -1*std::numeric_limits<double>::max();
+	unsigned int opt_center = st_node->partition.at(0);
+	unsigned int opt_radius = 0;
+	unsigned int s = 0;
+	
+	while(s < upper_bounds.size() &&
+		bounds_lst_size > 0)
+	{
+		printf("size = %d, opt_red = %lf\n", bounds_lst_size, opt_reduction);
+		if(get_next_center(
+			opt_center, opt_radius, opt_reduction, s, 
+			pruned_centers_radius,
+			upper_bounds, st_node->partition, 
+			st_node->in_partition, st_node->average))
+		{
+			prune_slices(bounds_lst, bounds_lst_size, pruned_centers_radius,
+				opt_reduction);
+		}
+	}
+	
+	st_node->center = opt_center;
+	st_node->radius = opt_radius;
+	st_node->error_best_cut = global_error - opt_reduction;
+	
+	for(std::vector<up_bound_t*>::iterator it = upper_bounds.begin();
+		it != upper_bounds.end(); ++it)
+	{
+		delete *it;
+	}
+}
+*/
+
+void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
+{
+	std::vector<up_bound_t*> upper_bounds;
+	upper_bounds.reserve(st_node->partition.size());
 	std::pair<double , unsigned int> e_r;
 	double sum_weights = 0;
 	double sum_weighted_values = 0;
@@ -779,13 +996,14 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	 * all slices in partition using sampling*/
 	for(unsigned int c = 0; c < st_node->partition.size(); c++)
 	{
-		computed_centers_radius.push_back(-1);
 		upper_bound_error_reduction(upper_bounds, c,
 			st_node->partition, st_node->diameter, 
 			st_node->in_partition, st_node->average,
 			sum_weighted_values, sum_weights,
 			num_samples_part);
 	}
+
+	unsigned int num_computed = 0;
 
 	/*Sorts the slices in non-increasing order of error reduction*/
 	std::sort(upper_bounds.begin(), upper_bounds.end(), CompareUpperBounds());
@@ -794,6 +1012,8 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	unsigned int opt_center = st_node->partition.at(0);
 	unsigned int opt_radius = 0;
 	unsigned int s = 0;
+	std::list< std::pair<unsigned int, double> *>::iterator it;
+	unsigned int radius;
 	
 	/*Keeps the best known slice (based on actual reduction)
 	 * and uses this slice to prune new candidates slices. 
@@ -802,42 +1022,34 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	while(s < upper_bounds.size() &&
 		rho * upper_bounds.at(s)->value > opt_reduction)
 	{
-		printf("center = %d, radius = %d, upper_bound = %lf\n", 
-			st_node->partition.at(upper_bounds.at(s)->center), 
-			upper_bounds.at(s)->radius, upper_bounds.at(s)->value);
+		radius = upper_bounds.at(s)->radius;
 
-		if(computed_centers_radius.at(upper_bounds.at(s)->center) 
-			< (int) upper_bounds.at(s)->radius)
+		for(it = upper_bounds.at(s)->bounds.begin(); 
+			it != upper_bounds.at(s)->bounds.end();++it)
 		{
-			if(upper_bounds.at(s)->radius > 0)
+			if(rho * (*it)->second > opt_reduction)
 			{
-				/*Computing the actual error reduction*/
-				e_r = min_error_radius(
-					st_node->partition.at(upper_bounds.at(s)->center), 
-					st_node->partition, upper_bounds.at(s)->radius, 
-					st_node->in_partition, st_node->average);
-
-				if(e_r.first > opt_reduction)
+				if(radius < (*it)->first)
 				{
-					opt_reduction = e_r.first;
-					opt_radius = e_r.second;
-					opt_center = 
-						st_node->partition.at(upper_bounds.at(s)->center);
+					radius = (*it)->first;
 				}
 			}
-			else
-			{
-				if(upper_bounds.at(s)->value > opt_reduction)
-				{
-					opt_reduction = upper_bounds.at(s)->value;
-					opt_radius = upper_bounds.at(s)->radius;
-					opt_center = 
-						st_node->partition.at(upper_bounds.at(s)->center);
-				}
-			}
-
-			computed_centers_radius.at(upper_bounds.at(s)->center) = 
-				upper_bounds.at(s)->radius;
+		}
+				
+		/*Computing the actual error reduction*/
+		e_r = min_error_radius(
+			st_node->partition.at(upper_bounds.at(s)->center), 
+			st_node->partition, radius, 
+			st_node->in_partition, st_node->average);
+		
+		num_computed++;
+		
+		if(e_r.first > opt_reduction)
+		{
+			opt_reduction = e_r.first;
+			opt_radius = e_r.second;
+			opt_center = 
+				st_node->partition.at(upper_bounds.at(s)->center);
 		}
 
 		s = s + 1;
@@ -847,10 +1059,15 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	st_node->radius = opt_radius;
 	st_node->error_best_cut = global_error - opt_reduction;
 	
-	for(std::vector<up_bound_t*>::iterator it = upper_bounds.begin();
-		it != upper_bounds.end(); ++it)
+	printf("#slices = %d, computed = %d\n", upper_bounds.size(), num_computed);
+	
+	for(unsigned int s = 0; s < upper_bounds.size(); s++)
 	{
-		delete *it;
+		for(it = upper_bounds.at(s)->bounds.begin(); 
+			it != upper_bounds.at(s)->bounds.end(); ++it)
+		{
+			delete *it;
+		}
 	}
 }
 
@@ -894,25 +1111,17 @@ void SliceTree::compute_difference_coefficients()
  * @throws
 **/
 const std::pair<double, unsigned int> SliceTree::min_error_radius(const unsigned int center, 
-	const std::vector<unsigned int>& partition, unsigned int diameter,
+	const std::vector<unsigned int>& partition, unsigned int max_radius,
 	const std::vector<bool>& in_partition, const double average) const
 {
 	double curr_sum_values = 0;
 	double curr_average = 0;
 	unsigned int vertex;
-	unsigned int max_radius = graph->max_distance(center);
 	std::list<unsigned int>* vertices_at_dist_r;
 
 	double max_reduction = 0;
 	double reduction;
 	unsigned int radius = 0;
-
-	/*Sometimes knowing the diameter of the partition may make the search
-	* faster*/
-	if(max_radius > diameter)
-	{
-		max_radius = diameter + 1;
-	}
 
 	unsigned int curr_num_vertices = 0;
 	std::vector<std::list<unsigned int>*> vertices_at_distance;
@@ -920,7 +1129,7 @@ const std::pair<double, unsigned int> SliceTree::min_error_radius(const unsigned
 	graph->build_distance_str_slice_tree_vertex(center, vertices_at_distance);
 	
 	/*Computing the sse for each possible radius*/
-	for(unsigned int r = 0; r < max_radius; r++)
+	for(unsigned int r = 0; r < vertices_at_distance.size(); r++)
 	{
 		/*Getting the list of vertices at distance r from the center*/
 		vertices_at_dist_r = vertices_at_distance[r];

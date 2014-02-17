@@ -1,6 +1,4 @@
-
-
-CFLAGS = -Wall -O3 -g -pthread #-pg
+CFLAGS = -Wall -O3 -g -pthread -pg
 
 CC = g++ $(CFLAGS)
 
