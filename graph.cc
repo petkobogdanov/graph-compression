@@ -561,7 +561,7 @@ void Graph::build_distance_str_slice_tree_sample()
 		{
 			graph_diameter = MAX_GRAPH_DIAMETER;
 		}
-	} 
+	}
 }
 
 /**
@@ -999,13 +999,13 @@ void Graph::set_biased_sample(const unsigned int _num_samples)
 		if(count_sample.at(sample) == 1) samples.push_back(sample);
 	}
 
-	for(unsigned int v = 0; v < size(); v++)
-	{
-		printf("v = %d, orig_value(v) = %lf, value(v) = %lf, weight(v) = %lf, count(v) = %d\n", 
-			v, vertex_values.at(v), value(v), weight(v), count_sample.at(v));
-	}
-
-	printf("mu = %lf, lambda = %lf\n", mu, lambda);
+//	for(unsigned int v = 0; v < size(); v++)
+//	{
+//		printf("v = %d, orig_value(v) = %lf, value(v) = %lf, weight(v) = %lf, count(v) = %d\n", 
+//			v, vertex_values.at(v), value(v), weight(v), count_sample.at(v));
+//	}
+//
+//	printf("mu = %lf, lambda = %lf\n", mu, lambda);
 }
 
 /**

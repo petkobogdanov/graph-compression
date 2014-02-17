@@ -208,6 +208,7 @@ class Graph
 		 * Builds the distance structure for a single center
 		 * @param center center
 		 * @param vertices_at_distance structure
+		 * @param radius max radius to be searched
 		 * @return
 		 * @throws
 		**/
