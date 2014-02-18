@@ -115,7 +115,6 @@ class CompareUpperBounds
 		bool operator()(const up_bound_t* u_one, const up_bound_t* u_two) const
 		{
 			return u_one->value > u_two->value;
-//			return u_one->low > u_two->low;
 		}
 };
 
