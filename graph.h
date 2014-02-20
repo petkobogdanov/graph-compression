@@ -57,6 +57,7 @@ typedef struct _PthreadParameters
 	std::list<unsigned int>* pool;
 	pthread_mutex_t* mutex_pool;
 	std::vector<std::vector<unsigned int>*>* partition_sizes;
+	unsigned int max_radius;
 }PthreadParameters;
 
 /**
@@ -105,11 +106,12 @@ class Graph
 		 * Builds a distance structure for slice tree using a set of sample 
 		 * vertices, this strcutre efficiently returns the list of vertices 
 		 * at a given distance from a certain vertex
-		 * @param 
+		 * @param max_radius maximum radius for slice tree
 		 * @return 
 		 * @throws 
 		**/
-		void build_distance_str_slice_tree_sample();
+		void build_distance_str_slice_tree_sample
+			(const unsigned int max_radius);
 
 		/**
 		 * Prints the slice tree distance structure
@@ -214,7 +216,8 @@ class Graph
 		**/
 		void build_distance_str_slice_tree_vertex(unsigned int center, 
 			std::vector<std::list<unsigned int>*>& 
-			vertices_at_distance) const;
+			vertices_at_distance, 
+			const unsigned int max_radius) const;
 		
 		/**
 		 * Reads the pre-computed partition sizes from a file.
@@ -230,11 +233,13 @@ class Graph
 		 * the computations.
 		 * @param num_threads number of threads available
 		 * @param output_file_name output file
+		 * @param max_radius maximum radius
 		 * @return
 		 * @throws
 		**/
 		void pre_compute_partition_sizes(const unsigned int num_threads, 
-			const std::string& output_file_name);
+			const std::string& output_file_name,
+			const unsigned int max_radius);
 		
 		/*Inline methods:*/
 		/**

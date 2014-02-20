@@ -215,11 +215,15 @@ class SliceTree: public GraphCompressionAlgorithm
 		/**
 		 * Constructor. 
 		 * @param graph graph 
+		 * @param max_radius maximum radius for slice tree
 		 * @return 
 		 * @throws 
 		**/
-		SliceTree(Graph& graph):
-			GraphCompressionAlgorithm(graph){;}
+		SliceTree(Graph& graph, const unsigned int _max_radius):
+			GraphCompressionAlgorithm(graph)
+		{
+			max_radius = _max_radius;
+		}
 
 		/**
 		 * Constructor. 
@@ -298,6 +302,7 @@ class SliceTree: public GraphCompressionAlgorithm
 		st_node_t* tree;
 		unsigned int n_partitions;
 		double global_error; //Keeps the final sse
+		unsigned int max_radius;
 
 		/**
 		 * Extends the slice tree recovered from a serialized file
@@ -413,6 +418,7 @@ class SliceTreeSamp: public SliceTree
 		/**
 		 * Constructor. 
 		 * @param graph graph 
+		 * @param max_radius maximum radius for slice tree
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
 		 * @param rho approximation parameter (rho)
@@ -420,9 +426,10 @@ class SliceTreeSamp: public SliceTree
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeSamp(Graph& _graph, const double _delta, const double _rho,
+		SliceTreeSamp(Graph& _graph, const unsigned int max_radius, 
+			const double _delta, const double _rho,
 			const unsigned int _num_samples):
-			SliceTree(_graph)
+			SliceTree(_graph, max_radius)
 		{
 			delta = _delta;
 			rho = _rho;
@@ -664,6 +671,7 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 		/**
 		 * Constructor. Does nothing. 
 		 * @param graph graph 
+		 * @param max_radius maximum radius for slice tree
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
 		 * @param rho approximation parameter (rho)
@@ -671,9 +679,11 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeBiasSamp(Graph& _graph, const double _delta, const double _rho,
+		SliceTreeBiasSamp(Graph& _graph, const unsigned int _max_radius, 
+			const double _delta, const double _rho,
 			const unsigned int _num_samples):
-			SliceTreeSamp(_graph, _delta, _rho, _num_samples){;}
+			SliceTreeSamp(_graph, _max_radius, _delta,
+			_rho, _num_samples){;}
 		
 		/**
 		 * Destructor. Does nothing. 
@@ -707,6 +717,7 @@ class SliceTreeUnifSamp: public SliceTreeSamp
 		/**
 		 * Constructor. Does nothing. 
 		 * @param graph graph 
+		 * @param max_radius maximum radius for slice tree
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
 		 * @param rho approximation parameter (rho)
@@ -714,9 +725,10 @@ class SliceTreeUnifSamp: public SliceTreeSamp
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeUnifSamp(Graph& _graph, const double _delta, const double _rho,
+		SliceTreeUnifSamp(Graph& _graph, const unsigned int _max_radius, 
+			const double _delta, const double _rho,
 			const unsigned int _num_samples):
-			SliceTreeSamp(_graph, _delta, _rho, _num_samples){;}
+			SliceTreeSamp(_graph, _max_radius, _delta, _rho, _num_samples){;}
 
 		/**
 		 * Destructor. Does nothing. 

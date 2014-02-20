@@ -70,7 +70,8 @@ int main(int argc, char** argv)
 		if(Parameters::compression_algorithm == "")
 		{
 			graph->pre_compute_partition_sizes(Parameters::num_threads, 
-				Parameters::partition_sizes_file_name);
+				Parameters::partition_sizes_file_name,
+				Parameters::max_radius);
 		}
 		else
 		{
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
 			
 			if(Parameters::budget > 0)
 			{
-				alg = new SliceTree(*graph); 
+				alg = new SliceTree(*graph, Parameters::max_radius); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -99,7 +100,7 @@ int main(int argc, char** argv)
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
-				alg = new SliceTree(*graph); 
+				alg = new SliceTree(*graph, Parameters::max_radius); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
@@ -112,14 +113,15 @@ int main(int argc, char** argv)
 			
 			exec_time_distance_str->start();
 			/*Slice tree requires the distance structure*/
-			graph->build_distance_str_slice_tree_sample();
+			graph->build_distance_str_slice_tree_sample(Parameters::max_radius);
 			exec_time_distance_str->stop();
 			distance_str_time = exec_time_distance_str->get_seconds();
 
 			if(Parameters::budget > 0)
 			{
-				alg = new SliceTreeUnifSamp(*graph, Parameters::delta,
-					Parameters::rho, Parameters::num_samples); 
+				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
+					Parameters::delta, Parameters::rho, 
+					Parameters::num_samples); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -129,8 +131,9 @@ int main(int argc, char** argv)
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
-				alg = new SliceTreeUnifSamp(*graph, Parameters::delta, 
-					Parameters::rho, Parameters::num_samples); 
+				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
+					Parameters::delta, Parameters::rho, 
+					Parameters::num_samples); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
@@ -143,14 +146,15 @@ int main(int argc, char** argv)
 			
 			exec_time_distance_str->start();
 			/*Slice tree requires the distance structure*/
-			graph->build_distance_str_slice_tree_sample();
+			graph->build_distance_str_slice_tree_sample(Parameters::max_radius);
 			exec_time_distance_str->stop();
 			distance_str_time = exec_time_distance_str->get_seconds();
 			
 			if(Parameters::budget > 0)
 			{
-				alg = new SliceTreeBiasSamp(*graph, Parameters::delta,
-					Parameters::rho, Parameters::num_samples); 
+				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
+					Parameters::delta, Parameters::rho, 
+					Parameters::num_samples); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -160,8 +164,9 @@ int main(int argc, char** argv)
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
-				alg = new SliceTreeBiasSamp(*graph, Parameters::delta, 
-					Parameters::rho, Parameters::num_samples);
+				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
+					Parameters::delta, Parameters::rho, 
+					Parameters::num_samples);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}

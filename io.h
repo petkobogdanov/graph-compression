@@ -24,6 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <limits.h>
 
 /*my includes*/
 #include "getopt_pp.h"
@@ -57,6 +58,7 @@ class Parameters
 		static unsigned int num_threads;
 		static double delta;
 		static double rho;
+		static unsigned int max_radius;
 		
 		/*List of valid compression algorithms for checking*/
 		static std::vector < std::string > compression_algorithms;
