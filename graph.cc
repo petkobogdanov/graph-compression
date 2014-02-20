@@ -994,13 +994,16 @@ void Graph::set_biased_sample(const unsigned int _num_samples)
 		rd = random_double();
 		sample = 0;
 		
-		while(selection_prob.at(sample) < rd && sample < size()) sample++;
+		while(sample < size() && selection_prob.at(sample) < rd) sample++;
 		
-		count_sample.at(sample) += 1;
-		sum_values += vertex_values.at(sample);
-		sum_weights += (double) lambda / fabs(vertex_values.at(sample) - mu);
+		if(sample < size())
+		{
+			count_sample.at(sample) += 1;
+			sum_values += vertex_values.at(sample);
+			sum_weights += (double) lambda / fabs(vertex_values.at(sample) - mu);
 
-		if(count_sample.at(sample) == 1) samples.push_back(sample);
+			if(count_sample.at(sample) == 1) samples.push_back(sample);
+		}
 	}
 
 //	for(unsigned int v = 0; v < size(); v++)
