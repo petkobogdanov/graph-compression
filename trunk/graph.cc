@@ -414,7 +414,8 @@ void Graph::build_distance_str_slice_tree()
 **/
 void Graph::build_distance_str_slice_tree_vertex(unsigned int center, 
 	std::vector<std::list<unsigned int>*>& 
-	vertices_at_distance) const
+	vertices_at_distance,
+	const unsigned int max_radius) const
 {
 	std::vector<unsigned int> distances;
 	distances.reserve(size());
@@ -442,7 +443,7 @@ void Graph::build_distance_str_slice_tree_vertex(unsigned int center,
 		{
 			z = *it;
 
-			if(distances[z] > distances[u] + 1)
+			if(distances[z] > distances[u] + 1 && distances[u] + 1 <= max_radius)
 			{
 				distances[z] = distances[u] + 1;
 					
@@ -453,7 +454,7 @@ void Graph::build_distance_str_slice_tree_vertex(unsigned int center,
 	
 	for(unsigned int v = 0; v < size(); v++)
 	{
-		if(distances[v] > max_distance)
+		if(distances[v] > max_distance && distances[v] <= max_radius)
 		{
 			max_distance = distances[v];
 		}
@@ -468,7 +469,10 @@ void Graph::build_distance_str_slice_tree_vertex(unsigned int center,
 
 	for(u = 0; u < size(); u++)
 	{
-		vertices_at_distance.at(distances[u])->push_back(u);
+		if(distances[u] <= max_radius)
+		{
+			vertices_at_distance.at(distances[u])->push_back(u);
+		}
 	}
 }
 
@@ -476,11 +480,11 @@ void Graph::build_distance_str_slice_tree_vertex(unsigned int center,
  * Builds a distance structure for slice tree using a set of sample 
  * vertices, this strcutre efficiently returns the list of vertices 
  * at a given distance from a certain vertex
- * @param 
+ * @param max_radius maximum radius for slice tree
  * @return 
  * @throws 
 **/
-void Graph::build_distance_str_slice_tree_sample()
+void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 {
 	unsigned int num_vertices = size();
 	distance_str.reserve(num_vertices);
@@ -490,7 +494,7 @@ void Graph::build_distance_str_slice_tree_sample()
 	
 	for(unsigned int v = 0; v < num_vertices; v++)
 	{
-		distances.push_back(UINT_MAX);
+		distances.push_back(max_radius+1);
 		distance_str.push_back(new std::vector< std::list<unsigned int >* >);
 	}
 
@@ -523,23 +527,23 @@ void Graph::build_distance_str_slice_tree_sample()
 			{
 				z = *it;
 
-				if(distances[z] > distances[u] + 1)
+				if(distances[z] > distances[u] + 1 &&
+					distances[u] + 1 <= max_radius)
 				{
 					distances[z] = distances[u] + 1;
-					
-					if(distances[z] > max_distance)
-					{
-						max_distance = distances[z];
-					}
-					
 					queue.push(z);
 				}
 			}
 		}
-
-		if(max_distance > graph_diameter)
+		
+		for(u = 0; u < num_vertices; u++)
 		{
-			graph_diameter = max_distance;
+			if(distances[u] > max_distance &&
+				distances[u] <= max_radius &&
+				distances[u] < UINT_MAX)
+			{
+				max_distance = distances[u];
+			}
 		}
 
 		for(u = 0; u < num_vertices; u++)
@@ -1032,7 +1036,8 @@ void Graph::print()
 
 void build_distance_str(const unsigned int root, 
 	 std::vector<std::vector<unsigned int>*>& partition_sizes, 
-	 std::vector< std::list<unsigned int>* >& adjacency_list)
+	 std::vector< std::list<unsigned int>* >& adjacency_list,
+	 const unsigned int max_radius)
 {
 	std::queue<unsigned int> queue;
 	unsigned int z;
@@ -1060,7 +1065,8 @@ void build_distance_str(const unsigned int root,
 		{
 			z = *it;
 
-			if(distances[z] > distances[u] + 1)
+			if(distances[z] > distances[u] + 1 &&
+				distances[u] + 1 <= max_radius)
 			{
 				distances[z] = distances[u] + 1;
 				queue.push(z);
@@ -1070,7 +1076,8 @@ void build_distance_str(const unsigned int root,
 	
 	for(u = 0; u < adjacency_list.size(); u++)
 	{
-		if(distances[u] > max_distance)
+		if(distances[u] > max_distance
+			&& distances[u] <= max_radius) 
 		{
 			max_distance = distances[u];
 		}
@@ -1085,20 +1092,23 @@ void build_distance_str(const unsigned int root,
 
 	for(u = 0; u < adjacency_list.size(); u++)
 	{
-		partition_sizes.at(root)->at(distances[u])++;
+		if(distances[u] <= max_radius)
+		{
+			partition_sizes.at(root)->at(distances[u])++;
+		}
 	} 
 	
 	for(u = 1; u <= max_distance; u++)
 	{
 		partition_sizes.at(root)->at(u) += partition_sizes.at(root)->at(u-1);
-		;
 	}
 }
 
 void run_thread(std::list<unsigned int>* pool, 
 	std::vector< std::list<unsigned int>* >* adjacency_list, 
 	pthread_mutex_t* mutex_pool, 
-	std::vector<std::vector<unsigned int>*>* partition_sizes)
+	std::vector<std::vector<unsigned int>*>* partition_sizes,
+	const unsigned int max_radius)
 {
 	unsigned int vertex;
 	
@@ -1118,7 +1128,7 @@ void run_thread(std::list<unsigned int>* pool,
 			pthread_mutex_unlock(mutex_pool);
 		}
 
-		build_distance_str(vertex, *partition_sizes, *adjacency_list);
+		build_distance_str(vertex, *partition_sizes, *adjacency_list, max_radius);
 	}
 }
 
@@ -1126,7 +1136,7 @@ void* start_thread(void* v_parameter)
 {
 	PthreadParameters* parameter = (PthreadParameters*) v_parameter;
 	run_thread(parameter->pool, parameter->adjacency_list, parameter->mutex_pool, 
-		 parameter->partition_sizes);
+		 parameter->partition_sizes, parameter->max_radius);
 	pthread_exit(NULL);
 }
 
@@ -1140,7 +1150,8 @@ void* start_thread(void* v_parameter)
  * @throws
 **/
 void Graph::pre_compute_partition_sizes(const unsigned int num_threads, 
-	const std::string& output_file_name)
+	const std::string& output_file_name,
+	const unsigned int max_radius)
 {
 	std::vector<PthreadParameters*> parameters;
 	parameters.reserve(num_threads);
@@ -1167,6 +1178,7 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 		parameter->mutex_pool = mutex_pool;
 		parameter->pool = &pool;
 		parameter->partition_sizes = &partition_sizes;
+		parameter->max_radius = max_radius;
 		parameters.push_back(parameter);
 
 		pthread_create(&threads[t], NULL, start_thread, parameter);

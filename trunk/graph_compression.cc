@@ -753,7 +753,7 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	const unsigned int num_samples_part) const
 {
 	std::list<unsigned int>* vertices_at_dist_r;
-	unsigned int max_radius = graph->max_distance(partition.at(center)) - 1;
+	unsigned int max_radius_slice = graph->max_distance(partition.at(center));
 	double sum_weights_in = 0;
 	double sum_weighted_values_in = 0;
 	double sum_weights_out;
@@ -769,9 +769,9 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	unsigned int vertex;
 	double bound_value;
 	
-	if(max_radius > diameter)
+	if(max_radius_slice > diameter)
 	{
-		max_radius = diameter + 1;
+		max_radius_slice = diameter + 1;
 	}
 
 	/*For radius = 0, we compute the actual reduction, instead of an
@@ -792,7 +792,7 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	
 	up_bound->bounds.push_back(new std::pair<unsigned int, double>(0, up_bound->value));
 	
-	for(unsigned int r = 0; r < max_radius; r++)
+	for(unsigned int r = 0; r < max_radius_slice; r++)
 	{
 		vertices_at_dist_r = graph->vertices_at_distance
 			(partition.at(center), r);
@@ -1032,7 +1032,7 @@ void SliceTree::compute_difference_coefficients()
  * @throws
 **/
 const std::pair<double, unsigned int> SliceTree::min_error_radius(const unsigned int center, 
-	const std::vector<unsigned int>& partition, unsigned int max_radius,
+	const std::vector<unsigned int>& partition, unsigned int max_radius_slice,
 	const std::vector<bool>& in_partition, const double average) const
 {
 	double curr_sum_values = 0;
@@ -1047,7 +1047,14 @@ const std::pair<double, unsigned int> SliceTree::min_error_radius(const unsigned
 	unsigned int curr_num_vertices = 0;
 	std::vector<std::list<unsigned int>*> vertices_at_distance;
 	
-	graph->build_distance_str_slice_tree_vertex(center, vertices_at_distance);
+	if(max_radius_slice < max_radius)
+	{
+		graph->build_distance_str_slice_tree_vertex(center, vertices_at_distance, max_radius_slice);
+	}
+	else
+	{
+		graph->build_distance_str_slice_tree_vertex(center, vertices_at_distance, max_radius);
+	}
 	
 	/*Computing the sse for each possible radius*/
 	for(unsigned int r = 0; r < vertices_at_distance.size(); r++)
