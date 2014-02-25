@@ -18,7 +18,8 @@ do
     do
       for d in ${delta[@]}
       do
-        ./graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STBS -p $num_partitions -n $s -d $d -s syn_$g.sizes -m $radius > out_stbs_$g\_$n\_$d\_$r.txt
+        echo "graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STBS -p $num_partitions -n $s -d $d -s syn_$g.sizes -m $radius > out_stbs_$g\_$s\_$d\_$r.txt"
+        ./graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STBS -p $num_partitions -n $s -d $d -s syn_$g.sizes -m $radius > out_stbs_$g\_$s\_$d\_$r.txt
       done
     done
   done

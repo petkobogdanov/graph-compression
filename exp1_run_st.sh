@@ -9,5 +9,6 @@ num_partitions=2
 
 for((g=1; g<=$num_graphs; g++))
 do
+    echo "graph_compression -g syn_$g.graph -v syn_$g.data -o output -c ST -p $num_partitions -s syn_$g.sizes -m $radius > out_st_$g.txt"
     ./graph_compression -g syn_$g.graph -v syn_$g.data -o output -c ST -p $num_partitions -s syn_$g.sizes -m $radius > out_st_$g.txt 
 done
