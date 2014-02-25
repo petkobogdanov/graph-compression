@@ -228,7 +228,6 @@ int main(int argc, char** argv)
 			std::cout << "sse_reduction = " <<  sse_reduction << std::endl;
 			std::cout << "compression_rate = " << compression_rate << std::endl;
 			std::cout << "compression_time = " << compression_time << std::endl;
-			std::cout << "compression_time = " << compression_time << std::endl;
 			std::cout << "pruned_slices = " << SliceTreeSamp::pruned() << std::endl;
 			
 			if(Parameters::compression_algorithm == "STUS" ||
