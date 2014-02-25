@@ -8,5 +8,6 @@ radius=2
 
 for((g=1; g<=$num_graphs; g++))
 do
-    ./graph_compression -g syn_$g.graph -v syn_$g.data -s syn_$g.sizes -t 8 -m 2
+    echo "graph_compression -g syn_$g.graph -v syn_$g.data -s syn_$g.sizes -t 8 -m $radius"
+    ./graph_compression -g syn_$g.graph -v syn_$g.data -s syn_$g.sizes -t 8 -m $radius
 done
