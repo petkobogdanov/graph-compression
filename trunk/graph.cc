@@ -39,7 +39,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Graph::Graph(const std::string& graph_file_name, const std::string& values_file_name) throw (std::ios_base::failure)
 {
 	read_graph(graph_file_name, values_file_name);
-	graph_diameter = 0;
+	graph_diameter = USHRT_MAX;
 	distance_matrix = NULL;
 	biased_sampling = false;
 	uniform_sampling = false;
@@ -58,7 +58,7 @@ Graph::Graph(const std::string& graph_file_name, const std::string& values_file_
 Graph::Graph(const std::string& graph_file_name) throw (std::ios_base::failure)
 {
 	read_graph(graph_file_name);
-	graph_diameter = 0;
+	graph_diameter = USHRT_MAX;
 	distance_matrix = NULL;
 	biased_sampling = false;
 	uniform_sampling = false;
@@ -558,13 +558,6 @@ void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 				distance_str[u]->at(distances[u])->push_back(*v);
 			}
 		}
-		
-		/*When sampling is applied we do not obtain the graph
-		* diameter, thus we set it to a max value*/
-		if(graph_diameter < MAX_GRAPH_DIAMETER)
-		{
-			graph_diameter = MAX_GRAPH_DIAMETER;
-		}
 	}
 }
 
@@ -915,11 +908,12 @@ double random_double()
  * @return
  * @throws 
 **/
-void Graph::set_sample(const unsigned int _num_samples)
+void Graph::set_uniform_sample(const unsigned int _num_samples)
 {
 	uniform_sampling = true;
 	srand (time(NULL));
 	num_samples = _num_samples;
+	count_sample.reserve(num_samples);
 
 	unsigned int sample;
 
@@ -989,7 +983,7 @@ void Graph::set_biased_sample(const unsigned int _num_samples)
 		}
 	}
 
-	for(unsigned int i = 0; i < num_samples; i++)
+	while(samples.size() < num_samples)
 	{
 		rd = random_double();
 		sample = 0;
@@ -1005,14 +999,15 @@ void Graph::set_biased_sample(const unsigned int _num_samples)
 			if(count_sample.at(sample) == 1) samples.push_back(sample);
 		}
 	}
+/*
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		printf("v = %d, orig_value(v) = %lf, value(v) = %lf, weight(v) = %lf, count(v) = %d\n", 
+			v, vertex_values.at(v), value(v), weight(v), count_sample.at(v));
+	}
 
-//	for(unsigned int v = 0; v < size(); v++)
-//	{
-//		printf("v = %d, orig_value(v) = %lf, value(v) = %lf, weight(v) = %lf, count(v) = %d\n", 
-//			v, vertex_values.at(v), value(v), weight(v), count_sample.at(v));
-//	}
-//
-//	printf("mu = %lf, lambda = %lf\n", mu, lambda);
+	printf("mu = %lf, lambda = %lf\n", mu, lambda);
+*/
 }
 
 /**

@@ -31,13 +31,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 double GraphCompression::sse_value = 0;
 double GraphCompression::sse_reduction_value = 0;
 double GraphCompression::compression_rate_value = 0;
-double GraphCompression::compression_time_value = 0;
 unsigned int GraphCompression::budget_value = 0;
 double GraphCompression::maximum_pointwise_error_value = 0;
 double GraphCompression::peak_signal_to_noise_ratio_value = 0;
 double GraphCompression::root_mean_squared_error_value = 0;
 double GraphCompression::normalized_sse_value = 0;
 GraphCompressionAlgorithm* GraphCompression::compression_algorithm = NULL;
+unsigned int SliceTreeSamp::num_pruned_bound_1 = 0;
+unsigned int SliceTreeSamp::num_pruned_bound_2 = 0;
+unsigned int SliceTreeSamp::num_pruned_bound_3 = 0;
+unsigned int SliceTreeSamp::num_pruned = 0;
+unsigned int SliceTreeSamp::total_slices = 0;
 
 /**
  * Computes epsilon, as defined for hoeffding bounds.
@@ -94,16 +98,10 @@ void GraphCompression::compress(Graph& graph_to_compress,
 {
 	compression_algorithm = &algorithm;
 	budget_value = budget;
-	ExecTime* exec_time_compression = new ExecTime();
-	exec_time_compression->start();
 	compression_algorithm->compress(budget);
-	exec_time_compression->stop();
-	compression_time_value = exec_time_compression->get_seconds();
 	compression_algorithm->write(output_file_name);
 	compression_algorithm->set_compressed_values();
 	compute_statistics(graph_to_compress);
-	
-	delete exec_time_compression;
 }
 
 /**
@@ -251,11 +249,11 @@ void GraphCompression::compute_statistics(Graph& graph)
 {
 	compute_sse(graph);
 	compute_sse_reduction(graph);
-	compute_normalized_sse(graph);
+//	compute_normalized_sse(graph);
 	compute_compression_rate(graph);
-	compute_root_mean_squared_error(graph);
-	compute_maximum_pointwise_error(graph);
-	compute_peak_signal_to_noise_ratio(graph);
+//	compute_root_mean_squared_error(graph);
+//	compute_maximum_pointwise_error(graph);
+//	compute_peak_signal_to_noise_ratio(graph);
 }
 
 /**
@@ -753,7 +751,6 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	const unsigned int num_samples_part) const
 {
 	std::list<unsigned int>* vertices_at_dist_r;
-	unsigned int max_radius_slice = graph->max_distance(partition.at(center));
 	double sum_weights_in = 0;
 	double sum_weighted_values_in = 0;
 	double sum_weights_out;
@@ -768,10 +765,15 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	up_bound_t* up_bound;
 	unsigned int vertex;
 	double bound_value;
+	unsigned int max_radius_slice;
 	
-	if(max_radius_slice > diameter)
+	if(max_radius > diameter)
 	{
-		max_radius_slice = diameter + 1;
+		max_radius_slice = diameter;
+	}
+	else
+	{
+		max_radius_slice = max_radius;
 	}
 
 	/*For radius = 0, we compute the actual reduction, instead of an
@@ -792,28 +794,34 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 	
 	up_bound->bounds.push_back(new std::pair<unsigned int, double>(0, up_bound->value));
 	
-	for(unsigned int r = 0; r < max_radius_slice; r++)
+//	printf("center = %d, max_radius = %d, diameter = %d\n", center, max_radius_slice, diameter);
+
+	for(unsigned int r = 0; r <= max_radius_slice; r++)
 	{
-		vertices_at_dist_r = graph->vertices_at_distance
-			(partition.at(center), r);
-
-		for(std::list<unsigned int>::iterator it = vertices_at_dist_r->begin();
-			it != vertices_at_dist_r->end();++it)
+		if(r < graph->max_distance(center))
 		{
-			vertex = *it;
-			
-			if(in_partition[vertex])
+			vertices_at_dist_r = graph->vertices_at_distance
+				(partition.at(center), r);
+
+			for(std::list<unsigned int>::iterator it = 
+				vertices_at_dist_r->begin();
+				it != vertices_at_dist_r->end();++it)
 			{
-				sum_weighted_values_in +=
-					graph->count(vertex) * graph->value(vertex);
+				vertex = *it;
+				
+				if(in_partition[vertex])
+				{
+					sum_weighted_values_in +=
+						graph->count(vertex) * graph->value(vertex);
+	
+					sum_weights_in +=
+						graph->count(vertex) * graph->weight(vertex);
+	
+					num_samples_part_in += graph->count(vertex);
+				}
+			}	
+		}
 
-				sum_weights_in +=
-					graph->count(vertex) * graph->weight(vertex);
-
-				num_samples_part_in += graph->count(vertex);
-			}
-		}	
-		
 		if(sum_weights_in > 0)
 		{
 			weighted_mean_in = (double) sum_weighted_values_in
@@ -851,17 +859,36 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 		{
 			if(upper_bound_one < upper_bound_two)
 			{
-				bound_value = upper_bound_one;
+				if(upper_bound_one < upper_bound_three)
+				{
+					bound_value = upper_bound_one;
+					num_pruned_bound_1++;
+				}
+				else
+				{
+					bound_value = upper_bound_three;
+
+					if(upper_bound_three < upper_bound_one)
+					{
+						num_pruned_bound_3++;
+					}
+				}
 			}
 			else
 			{
 				if(upper_bound_two < upper_bound_three)
 				{
 					bound_value = upper_bound_two;
+					num_pruned_bound_2++;
 				}
 				else
 				{
 					bound_value = upper_bound_three;
+
+					if(upper_bound_three < upper_bound_two)
+					{
+						num_pruned_bound_3++;
+					}
 				}
 			}
 			
@@ -876,6 +903,7 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 			}
 		}
 	}
+	
 	upper_bounds.push_back(up_bound);
 }
 
@@ -914,17 +942,17 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	 * all slices in partition using sampling*/
 	for(unsigned int c = 0; c < st_node->partition.size(); c++)
 	{
-		if(graph->count(st_node->partition.at(c)))
+//		if(graph->count(st_node->partition.at(c)))
 		{
 			upper_bound_error_reduction(upper_bounds, c,
 				st_node->partition, st_node->diameter, 
 				st_node->in_partition, st_node->average,
 				sum_weighted_values, sum_weights,
 				num_samples_part);
+			total_slices += upper_bounds.back()->bounds.size();
+			num_pruned += upper_bounds.back()->bounds.size();
 		}
 	}
-
-	unsigned int num_computed = 0;
 
 	/*Sorts the slices in non-increasing order of error reduction*/
 	std::sort(upper_bounds.begin(), upper_bounds.end(), CompareUpperBounds());
@@ -938,17 +966,16 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	
 	/*Keeps the best known slice (based on actual reduction)
 	 * and uses this slice to prune new candidates slices. 
-	 * the algorithm stops when an rho-approximate slice is
-	 * found*/
+	 */
 	while(s < upper_bounds.size() &&
-		rho * upper_bounds.at(s)->value > opt_reduction)
+		upper_bounds.at(s)->value > opt_reduction)
 	{
 		radius = upper_bounds.at(s)->radius;
 
 		for(it = upper_bounds.at(s)->bounds.begin(); 
 			it != upper_bounds.at(s)->bounds.end();++it)
 		{
-			if(rho * (*it)->second > opt_reduction)
+			if((*it)->second > opt_reduction)
 			{
 				if(radius < (*it)->first)
 				{
@@ -956,14 +983,14 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 				}
 			}
 		}
-				
+		
+		num_pruned -= radius;
+
 		/*Computing the actual error reduction*/
 		e_r = min_error_radius(
 			st_node->partition.at(upper_bounds.at(s)->center), 
 			st_node->partition, radius, 
 			st_node->in_partition, st_node->average);
-		
-		num_computed++;
 		
 		if(e_r.first > opt_reduction)
 		{
@@ -975,12 +1002,10 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 
 		s = s + 1;
 	}
-	
+
 	st_node->center = opt_center;
 	st_node->radius = opt_radius;
 	st_node->error_best_cut = global_error - opt_reduction;
-	
-	printf("#slices = %d, computed = %d\n", upper_bounds.size(), num_computed);
 	
 	for(unsigned int s = 0; s < upper_bounds.size(); s++)
 	{
@@ -1055,7 +1080,7 @@ const std::pair<double, unsigned int> SliceTree::min_error_radius(const unsigned
 	{
 		graph->build_distance_str_slice_tree_vertex(center, vertices_at_distance, max_radius);
 	}
-	
+
 	/*Computing the sse for each possible radius*/
 	for(unsigned int r = 0; r < vertices_at_distance.size(); r++)
 	{

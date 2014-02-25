@@ -421,18 +421,15 @@ class SliceTreeSamp: public SliceTree
 		 * @param max_radius maximum radius for slice tree
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
-		 * @param rho approximation parameter (rho)
 		 * @param num_samples number of samples
 		 * @return 
 		 * @throws 
 		**/
 		SliceTreeSamp(Graph& _graph, const unsigned int max_radius, 
-			const double _delta, const double _rho,
-			const unsigned int _num_samples):
+			const double _delta, const unsigned int _num_samples):
 			SliceTree(_graph, max_radius)
 		{
 			delta = _delta;
-			rho = _rho;
 			theta = compute_theta();
 			num_samples = _num_samples;
 			
@@ -450,8 +447,36 @@ class SliceTreeSamp: public SliceTree
 				dist_center_part.push_back(UINT_MAX);
 				radius_part.push_back(UINT_MAX);
 			}
+			
 		}
 		
+		inline static unsigned int count_bound_one()
+		{
+			return num_pruned_bound_1;
+		}
+		
+		inline static unsigned int count_bound_two()
+		{
+			return num_pruned_bound_2;
+		}
+
+		inline static unsigned int count_bound_three()
+		{
+			return num_pruned_bound_3;
+		}
+		
+		inline static double pruned()
+		{
+			if(total_slices > 0)
+			{
+				return (double) num_pruned / total_slices;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+
 		/**
 		 * Destructor
 		 * @param
@@ -461,10 +486,14 @@ class SliceTreeSamp: public SliceTree
 		virtual ~SliceTreeSamp(){;}
 	protected:
 		double delta;
-		double rho;
 		double theta;
 		unsigned int num_samples;
-		
+		static unsigned int num_pruned_bound_1;
+		static unsigned int num_pruned_bound_2;
+		static unsigned int num_pruned_bound_3;
+		static unsigned int total_slices;
+		static unsigned int num_pruned;
+
 		/*Data structures for computing upper and lower
 		 * bounds on sizes of partitions without actually
 		 * going through the complete list of vertices in 
@@ -674,16 +703,19 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 		 * @param max_radius maximum radius for slice tree
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
-		 * @param rho approximation parameter (rho)
 		 * @param num_samples number of samples
 		 * @return 
 		 * @throws 
 		**/
 		SliceTreeBiasSamp(Graph& _graph, const unsigned int _max_radius, 
-			const double _delta, const double _rho,
-			const unsigned int _num_samples):
-			SliceTreeSamp(_graph, _max_radius, _delta,
-			_rho, _num_samples){;}
+			const double _delta, const unsigned int _num_samples):
+			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples)
+		{
+			graph->set_biased_sample(_num_samples);
+			
+			/*Building distance structure for the sample*/
+			graph->build_distance_str_slice_tree_sample(max_radius);
+		}
 		
 		/**
 		 * Destructor. Does nothing. 
@@ -720,15 +752,19 @@ class SliceTreeUnifSamp: public SliceTreeSamp
 		 * @param max_radius maximum radius for slice tree
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
-		 * @param rho approximation parameter (rho)
 		 * @param num_samples number of samples
 		 * @return 
 		 * @throws 
 		**/
 		SliceTreeUnifSamp(Graph& _graph, const unsigned int _max_radius, 
-			const double _delta, const double _rho,
-			const unsigned int _num_samples):
-			SliceTreeSamp(_graph, _max_radius, _delta, _rho, _num_samples){;}
+			const double _delta, const unsigned int _num_samples):
+			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples)
+		{
+			graph->set_uniform_sample(_num_samples);
+			
+			/*Building distance structure for the sample*/
+			graph->build_distance_str_slice_tree_sample(max_radius);
+		}
 
 		/**
 		 * Destructor. Does nothing. 
@@ -1119,17 +1155,6 @@ class GraphCompression
 		}
 
 		/**
-		 * Returns the compression time
-		 * @param 
-		 * @return compression time
-		 * @throws
-		 **/
-		const static double compression_time()
-		{
-			return compression_time_value;
-		}
-		
-		/**
 		 * Returns the budget of the compression
 		 * @param 
 		 * @return budget
@@ -1191,7 +1216,6 @@ class GraphCompression
 		static double sse_value;
 		static double sse_reduction_value;
 		static double compression_rate_value;
-		static double compression_time_value;
 		static unsigned int budget_value;
 		static double maximum_pointwise_error_value;
 		static double peak_signal_to_noise_ratio_value;
