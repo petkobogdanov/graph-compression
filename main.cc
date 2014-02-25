@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 	double root_mean_squared_error;
 	double maximum_pointwise_error;
 	double peak_signal_to_noise_ratio;
-	ExecTime* exec_time_distance_str = new ExecTime();
+	ExecTime* exec_time_compression = new ExecTime();
 	GraphCompressionAlgorithm* alg;
 
 	/*Reading the input parameters*/
@@ -82,11 +82,7 @@ int main(int argc, char** argv)
 		if(Parameters::compression_algorithm == "ST")
 		{
 			/*Standard slice tree*/
-			exec_time_distance_str->start();
-			/*Slice tree requires the distance structure*/
-	//		graph->build_distance_str_slice_tree();
-			exec_time_distance_str->stop();
-			distance_str_time = exec_time_distance_str->get_seconds();
+			exec_time_compression->start();
 			
 			if(Parameters::budget > 0)
 			{
@@ -104,24 +100,19 @@ int main(int argc, char** argv)
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
+			
+			exec_time_compression->stop();
 		}
 		
 		if(Parameters::compression_algorithm == "STUS")
 		{
 			/*Slice tree with uniform sampling*/
-			graph->set_sample(Parameters::num_samples);
+			exec_time_compression->start();
 			
-			exec_time_distance_str->start();
-			/*Slice tree requires the distance structure*/
-			graph->build_distance_str_slice_tree_sample(Parameters::max_radius);
-			exec_time_distance_str->stop();
-			distance_str_time = exec_time_distance_str->get_seconds();
-
 			if(Parameters::budget > 0)
 			{
 				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::rho, 
-					Parameters::num_samples); 
+					Parameters::delta, Parameters::num_samples); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -132,29 +123,23 @@ int main(int argc, char** argv)
 					*graph);
 				
 				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::rho, 
-					Parameters::num_samples); 
+					Parameters::delta, Parameters::num_samples); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
+			
+			exec_time_compression->stop();
 		}
 		
 		if(Parameters::compression_algorithm == "STBS")
 		{
 			/*Slice tree with biased sampling*/
-			graph->set_biased_sample(Parameters::num_samples);
-			
-			exec_time_distance_str->start();
-			/*Slice tree requires the distance structure*/
-			graph->build_distance_str_slice_tree_sample(Parameters::max_radius);
-			exec_time_distance_str->stop();
-			distance_str_time = exec_time_distance_str->get_seconds();
+			exec_time_compression->start();
 			
 			if(Parameters::budget > 0)
 			{
 				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::rho, 
-					Parameters::num_samples); 
+					Parameters::delta, Parameters::num_samples); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -165,20 +150,20 @@ int main(int argc, char** argv)
 					*graph);
 				
 				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::rho, 
-					Parameters::num_samples);
+					Parameters::delta, Parameters::num_samples);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
+			
+			exec_time_compression->stop();
 		}
 		
 		if(Parameters::compression_algorithm == "AL")
 		{
-			exec_time_distance_str->start();
 			/*Average linkage requires the distance matrix*/
 			graph->build_distance_matrix();
-			exec_time_distance_str->stop();
-			distance_str_time = exec_time_distance_str->get_seconds();
+			
+			exec_time_compression->start();
 			
 			if(Parameters::budget > 0)
 			{
@@ -196,16 +181,17 @@ int main(int argc, char** argv)
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
+			
+			exec_time_compression->stop();
 		}
 		
 		if(Parameters::compression_algorithm == "WV")
 		{
-			exec_time_distance_str->start();
 			/*Wavelets requires a sorted vector*/
 			//graph->build_bfs_vector();
 			graph->build_priority_first_vector();
-			exec_time_distance_str->stop();
-			distance_str_time = exec_time_distance_str->get_seconds();
+			
+			exec_time_compression->start();
 			
 			if(Parameters::budget > 0)
 			{
@@ -224,6 +210,8 @@ int main(int argc, char** argv)
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
+			
+			exec_time_compression->stop();
 		}
 
 		if(Parameters::compression_algorithm != "")
@@ -231,8 +219,8 @@ int main(int argc, char** argv)
 			sse = GraphCompression::sse();
 			sse_reduction = GraphCompression::sse_reduction();
 			compression_rate = GraphCompression::compression_rate();
-			compression_time = GraphCompression::compression_time();
 			budget = GraphCompression::budget();
+			compression_time = exec_time_compression->get_seconds();
 		
 			/*Statistics printed as output*/
 			std::cout << "budget = " << budget << std::endl;
@@ -240,6 +228,21 @@ int main(int argc, char** argv)
 			std::cout << "sse_reduction = " <<  sse_reduction << std::endl;
 			std::cout << "compression_rate = " << compression_rate << std::endl;
 			std::cout << "compression_time = " << compression_time << std::endl;
+			std::cout << "compression_time = " << compression_time << std::endl;
+			std::cout << "pruned_slices = " << SliceTreeSamp::pruned() << std::endl;
+			
+			if(Parameters::compression_algorithm == "STUS" ||
+				Parameters::compression_algorithm == "STBS")
+			{
+				std::cout << "count_bound_1 = " << 
+					SliceTreeSamp::count_bound_one() << std::endl;
+				
+				std::cout << "count_bound_2 = " << 
+					SliceTreeSamp::count_bound_two() << std::endl;
+				
+				std::cout << "count_bound_3 = " << 
+					SliceTreeSamp::count_bound_three() << std::endl;
+			}
 			
 			delete alg;
 		}
@@ -247,7 +250,7 @@ int main(int argc, char** argv)
 		delete graph;
 	}
 
-	delete exec_time_distance_str;
+	delete exec_time_compression;
 
 	return 0;
 }

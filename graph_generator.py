@@ -19,40 +19,169 @@ import networkx
 from collections import deque
 
 class Graph(object):
-    def __init__(self, num_vertices, num_edges, num_partitions, radius, deviation, max_average):
-	G =  networkx.barabasi_albert_graph(num_vertices, num_edges)
+    def __init__(self, num_vertices, num_edges, num_partitions, radius, deviation, max_average, sse, sse_reduction):
+	self.num_vertices = num_vertices
+	self.num_edges = num_edges
+	self.num_partitions = num_partitions
+	self.radius = radius
+	self.deviation = deviation
+	self.max_average = max_average
+	self.sse_compression = sse - sse_reduction
+	self.sse_reduction = sse_reduction
+	self.tree = []
+    
+    def new_node(self, partition):
+        node = {}
+	node["left"] = -1
+	node["right"] = -1
+	node["average"] = 0
+	node["partition"] = partition
+	node["size"] = 0
+
+        return node
+
+    def set_graph(self):
+	G =  networkx.barabasi_albert_graph(self.num_vertices, self.num_edges)
         self.edges = []
 	self.values = []
-	self.partition_assignments = []
-	self.partitions = []
-	self.centers = {}
-        
-	for i in range(0, num_vertices):
+	
+	for i in range(0, self.num_vertices):
 	    self.edges.append([])
 	    self.values.append(0)
-	    self.partition_assignments.append(0)
-
+	
 	for e in G.edges(data=True):
 	    self.edges[e[0]].append(e[1])
 	    self.edges[e[1]].append(e[0])
-        
+
+    def print_tree(self):
+        for t in range(0, len(self.tree)):
+	    print self.tree[t]
+
+        for t in range(0, len(self.partitions)):
+	    print self.partitions[t]
+
+    def set_average_rec(self, node, mu, reduction_slice):
+	if(node["partition"] == -1):
+#	    print "reduction_slice = %lf\n" % reduction_slice
+            size_partition = self.tree[node["left"]]["size"]
+	    size_parent = node["size"]
+	    size_complement = size_parent - size_partition
+	    if size_parent*size_partition > 0:
+	        mu_partition = mu + math.sqrt(float(reduction_slice * size_complement) / (size_parent*size_partition))
+	    else:
+	        mu_partition = 0
+            self.tree[node["left"]]["average"] = mu_partition
+	    self.set_average_rec(self.tree[node["left"]], self.tree[node["left"]]["average"], reduction_slice)
+	    if size_complement > 0:
+	        mu_complement = float(mu*size_parent - mu_partition*size_partition) / size_complement
+	    else:
+	        mu_complement = 0
+
+	    self.tree[node["right"]]["average"] = mu_complement
+	    self.set_average_rec(self.tree[node["right"]], self.tree[node["right"]]["average"], reduction_slice)
+	else:
+	    self.partitions[node["partition"]]["average"] = node["average"]
+
+    def set_averages(self):
+	self.tree[0]["average"] = random.uniform(0, self.max_average)
+	reduction_slice = float(self.sse_reduction) / (self.num_partitions - 1)
+	self.set_average_rec(self.tree[0], self.tree[0]["average"], reduction_slice)
+    
+    def set_partitions(self):
+	self.partition_assignments = []
+	self.partitions = []
+	self.centers = {}
+	self.tree = []
+	
+	for i in range(0, self.num_vertices):
+	    self.partition_assignments.append(0)
+	
 	partition = {}
 	partition["average"] = 0
 	partition["center"] = -1
+	partition["size"] = self.num_vertices
+	partition["node"] = 0
+	self.tree.append(self.new_node(0))
+	self.tree[0]["size"] = self.num_vertices
 	
 	self.partitions.append(partition)
-         
-	for p in range(1, num_partitions):
-	    partition = self.create_new_partition(p, radius, deviation, max_average)
+	
+	for p in range(1, self.num_partitions):
+	    partition = self.create_new_partition(p, self.radius)
 	    self.partitions.append(partition)
-
-	self.sse = self.compute_sse()
-	self.sse_data = self.compute_sse_data()
     
+    def create_new_partition(self, partition_id, radius):
+        partition = {}
+	partition["average"] = 0 
+	partition["center"] = random.randint(0, self.num_vertices-1)
+	partition["node"] = len(self.tree)
+
+	while partition["center"] in self.centers:
+	    partition["center"] = random.randint(0, self.num_vertices-1)
+
+	parent = self.partition_assignments[partition["center"]]
+	
+	self.tree[self.partitions[parent]["node"]]["partition"] = -1
+	self.tree[self.partitions[parent]["node"]]["left"] = len(self.tree)
+	self.tree[self.partitions[parent]["node"]]["right"] = len(self.tree)+1
+	
+	self.tree.append(self.new_node(partition_id))
+	self.tree.append(self.new_node(parent))
+
+	partition["size"] = self.set_vertices_partition(partition_id, partition["center"], parent, radius)
+	self.partitions[parent]["size"] = self.partitions[parent]["size"] - partition["size"]
+	self.tree[partition["node"]]["size"] = partition["size"]
+	
+	self.partitions[parent]["node"] =  self.tree[self.partitions[parent]["node"]]["right"]
+	self.tree[self.partitions[parent]["node"]]["size"] = self.partitions[parent]["size"] 
+
+        return partition
+    
+    def set_vertices_partition(self, partition_id, center, parent, radius):
+        distances = {}
+        size = 0
+	q = deque([center])
+	distances[center] = 0
+	self.values[center] = 0
+	self.partition_assignments[center] = partition_id
+
+	while len(q) > 0:
+	    u = q.popleft()
+	    
+	    for z in self.edges[u]:
+	        if z not in distances or distances[z] > distances[u] + 1:
+		    if distances[u] + 1 <= radius:
+                        distances[z] = distances[u] + 1
+			q.append(z)
+			if self.partition_assignments[z] == parent:
+	                    self.partition_assignments[z] = partition_id
+        
+	for i in range(0, self.num_vertices):
+	    if(self.partition_assignments[i] == partition_id):
+	        size = size + 1
+	
+	return size
+
+    def set_values(self):
+	self.values = []
+	sse_partition = float(self.sse_compression) / self.num_partitions
+	self.set_averages()
+#	print "sse_partition = %lf\n" % sse_partition
+	for i in range(0, self.num_vertices):
+	    self.values.append(0)
+        
+	for p in range(0, self.num_partitions):
+	#    print "partition = %d, average = %lf\n" % (p, self.partitions[p]["average"])
+	    size_partition = self.partitions[p]["size"]
+	    average = self.partitions[p]["average"]
+	    std = math.sqrt(float(sse_partition) / size_partition)
+	    for i in range(0, self.num_vertices):
+	        if self.partition_assignments[i] == p:
+	            self.values[i] = random.gauss(average, std)
+
     def write_values(self, output_file_name):
         output_file = open(output_file_name, 'w')
         for v in range(0, len(self.edges)):
-	    #output_file.write(str(v)+",0,"+str(self.values[v])+"\n")
 	    output_file.write(str(v)+","+str(self.values[v])+"\n")
 	     
 	output_file.close() 
@@ -67,34 +196,25 @@ class Graph(object):
 	output_file.close() 
 
     def write_statistics(self, output_file_name):
-        output_file = open(output_file_name, 'w')
-	output_file.write("sse_data = "+str(self.sse_data)+"\n")
-	output_file.write("sse_optimal_partitioning = "+str(self.sse)+"\n")
-	output_file.write("optimal_sse_reduction = "+str(float(self.sse_data-self.sse)/self.sse_data)+"\n")
-        output_file.write("partitions:\n")
+        sse_data = self.compute_sse_data()
+	sse = self.compute_sse()
+	output_file = open(output_file_name, 'w')
+	output_file.write("sse_data = "+str(sse_data)+"\n")
+	output_file.write("sse_optimal_partitioning = "+str(sse)+"\n")
+#	output_file.write("optimal_sse_reduction = "+str(float(self.sse_data-self.sse)/self.sse_data)+"\n")
+	output_file.write("optimal_sse_reduction = "+str(float(sse_data-sse))+"\n")
+        output_file.write("partition_id,center,average,actual_average,sse,size\n")
 	
 	for p in range(0, len(self.partitions)):
-	    output_file.write(str(p)+","+str(self.partitions[p]["center"])+","+str(self.partitions[p]["average"])+","+str(self.partitions[p]["sse"])+"\n")
+	    output_file.write(str(p)+","+str(self.partitions[p]["center"])+","+str(self.partitions[p]["average"])+","+str(self.partitions[p]["actual_average"])+","+str(self.partitions[p]["sse"])+","+str(self.partitions[p]["size"])+"\n")
         
-        output_file.write("assignments:\n")
+        output_file.write("vertex,partition\n")
 
 	for v in range(0, len(self.partition_assignments)):
 	    output_file.write(str(v)+","+str(self.partition_assignments[v])+"\n")
 	
 	output_file.close() 
 
-    def create_new_partition(self, partition_id, radius, deviation, max_average):
-        partition = {}
-	partition["average"] = random.uniform(0, max_average)
-	partition["center"] = random.randint(0, len(self.edges)-1)
-
-	while partition["center"] in self.centers or self.partition_assignments[partition["center"]] != 0:
-	    partition["center"] = random.randint(0, len(self.edges)-1)
-
-	self.set_values_partition(partition_id, partition["center"], partition["average"], deviation, radius)
-
-        return partition
-    
     def compute_sse(self):
         sse = 0
 	for p in range(0, len(self.partitions)):
@@ -116,6 +236,7 @@ class Graph(object):
 		    sse_partition = sse_partition + math.pow(average - self.values[v], 2)
             
 	    self.partitions[p]["sse"] = sse_partition
+	    self.partitions[p]["actual_average"] = average
 	    sse = sse + sse_partition
 
         return sse
@@ -128,6 +249,8 @@ class Graph(object):
 	    average = average + v
 
 	average = float(average) / len(self.values)
+
+#	print "average = %lf" % average
 
 	for v in self.values:
             sse = sse + math.pow(average - v, 2)
@@ -169,11 +292,13 @@ def main(argv=None):
     #		- partition radius	r
     #		- standart deviation values partition d
     #		- max partition average	m
+    #		- sse reduction c
+    #		- num partitions n
     #
 
     try:
         try:
-            opts, input_files = getopt.getopt(argv[1:], "o:v:e:p:r:d:m:h", ["output=","num-vertices=","num-edges=","num-partitions=","radius=","deviation=","max-average=","help"])
+            opts, input_files = getopt.getopt(argv[1:], "o:v:e:p:r:d:m:s:c:h", ["output=","num-vertices=","num-edges=","num-partitions=","radius=","deviation=","max-average=","sse=","reduction=","help"])
         except getopt.error, msg:
             raise Usage(msg)
  
@@ -184,6 +309,8 @@ def main(argv=None):
 	radius = 0
 	deviation = 0
 	max_average = 0
+	sse_reduction = 0
+	sse = 0
 
         for opt,arg in opts:
 	    if opt in ('-o', '--output'):
@@ -200,15 +327,22 @@ def main(argv=None):
 	        deviation = float(arg)
 	    if opt in ('-m', '--max-average'):
 	        max_average = float(arg)
+	    if opt in ('-s', '--sse'):
+	        sse = float(arg)
+	    if opt in ('-c', '--reduction'):
+	        sse_reduction = float(arg)
 	    if opt in ('-h', '--help'):
-	        print "python graph_generator.py [-o <output_file>] [-v <num-vertices>] [-e <num-edges>] [-p <num-partitions] [-r <radius>] [-d <deviation>] [-m <max-average>]"
+	        print "python graph_generator.py [-o <output_file>] [-v <num-vertices>] [-e <num-edges>] [-p <num-partitions] [-r <radius>] [-d <deviation>] [-m <max-average>] [-c <reduction>]"
 	        sys.exit()
-        
-        g = Graph(num_vertices, num_edges, num_partitions, radius, deviation, max_average)
-
-	g.write_values(output_file_name + ".data")
+       
+        g = Graph(num_vertices, num_edges, num_partitions, radius, deviation, max_average, sse, sse_reduction)
+	    
+	g.set_graph()
 	g.write_graph(output_file_name + ".graph")
-	g.write_statistics(output_file_name + ".stats")
+	g.set_partitions()
+	g.set_values()
+        g.write_values(output_file_name + ".data")
+        g.write_statistics(output_file_name + ".stats")
 
     except Usage, err:
         print >>sys.stderr, err.msg

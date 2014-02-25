@@ -57,7 +57,6 @@ class Parameters
 		static std::string partition_sizes_file_name;
 		static unsigned int num_threads;
 		static double delta;
-		static double rho;
 		static unsigned int max_radius;
 		
 		/*List of valid compression algorithms for checking*/

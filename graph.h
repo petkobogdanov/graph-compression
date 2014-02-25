@@ -188,7 +188,7 @@ class Graph
 		 * @return
 		 * @throws 
 		**/
-		void set_sample(const unsigned int num_samples);
+		void set_uniform_sample(const unsigned int num_samples);
 
 		/**
 		 * Selects a set of biased vertices from the graph according to (v-miu)^2
@@ -275,6 +275,8 @@ class Graph
 		inline std::list<unsigned int>* vertices_at_distance(const unsigned int vertex, 
 			const unsigned int distance) const
 		{
+//			printf("distance = %d, size = %d, vertex = %d, size = %d\n", 
+//				distance, distance_str[vertex]->size(), vertex, distance_str.size());
 			return distance_str[vertex]->at(distance);
 		}
 
