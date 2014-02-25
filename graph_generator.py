@@ -19,12 +19,11 @@ import networkx
 from collections import deque
 
 class Graph(object):
-    def __init__(self, num_vertices, num_edges, num_partitions, radius, deviation, max_average, sse, sse_reduction):
+    def __init__(self, num_vertices, num_edges, num_partitions, radius, max_average, sse, sse_reduction):
 	self.num_vertices = num_vertices
 	self.num_edges = num_edges
 	self.num_partitions = num_partitions
 	self.radius = radius
-	self.deviation = deviation
 	self.max_average = max_average
 	self.sse_compression = sse - sse_reduction
 	self.sse_reduction = sse_reduction
@@ -257,25 +256,6 @@ class Graph(object):
 
 	return sse
 
-    def set_values_partition(self, partition_id, center, average, deviation, radius):
-        distances = {}
-
-	q = deque([center])
-	distances[center] = 0
-	self.values[center] = random.gauss(average, deviation)
-	self.partition_assignments[center] = partition_id
-
-	while len(q) > 0:
-	    u = q.popleft()
-	    
-	    for z in self.edges[u]:
-	        if z not in distances or distances[z] > distances[u] + 1:
-		    if distances[u] + 1 <= radius:
-                        distances[z] = distances[u] + 1
-			q.append(z)
-	                self.values[z] = random.gauss(average, deviation)
-	                self.partition_assignments[z] = partition_id
-
 class Usage(Exception):
     def __init__(self, msg):
         self.msg = msg
@@ -290,7 +270,6 @@ def main(argv=None):
     #		- number of edges new vertex e (preferential attachment)
     #		- number of partitions	p
     #		- partition radius	r
-    #		- standart deviation values partition d
     #		- max partition average	m
     #		- sse reduction c
     #		- num partitions n
@@ -298,7 +277,7 @@ def main(argv=None):
 
     try:
         try:
-            opts, input_files = getopt.getopt(argv[1:], "o:v:e:p:r:d:m:s:c:h", ["output=","num-vertices=","num-edges=","num-partitions=","radius=","deviation=","max-average=","sse=","reduction=","help"])
+            opts, input_files = getopt.getopt(argv[1:], "o:v:e:p:r:m:s:c:h", ["output=","num-vertices=","num-edges=","num-partitions=","radius=","max-average=","sse=","reduction=","help"])
         except getopt.error, msg:
             raise Usage(msg)
  
@@ -307,7 +286,6 @@ def main(argv=None):
 	num_edges = 0
 	num_partitions = 0
 	radius = 0
-	deviation = 0
 	max_average = 0
 	sse_reduction = 0
 	sse = 0
@@ -323,8 +301,6 @@ def main(argv=None):
 	        num_partitions = int(arg)
 	    if opt in ('-r', '--radius'):
 	        radius = int(arg)
-	    if opt in ('-d', '--deviation'):
-	        deviation = float(arg)
 	    if opt in ('-m', '--max-average'):
 	        max_average = float(arg)
 	    if opt in ('-s', '--sse'):
@@ -332,10 +308,10 @@ def main(argv=None):
 	    if opt in ('-c', '--reduction'):
 	        sse_reduction = float(arg)
 	    if opt in ('-h', '--help'):
-	        print "python graph_generator.py [-o <output_file>] [-v <num-vertices>] [-e <num-edges>] [-p <num-partitions] [-r <radius>] [-d <deviation>] [-m <max-average>] [-c <reduction>]"
+	        print "python graph_generator.py [-o <output_file>] [-v <num-vertices>] [-e <num-edges>] [-p <num-partitions] [-r <radius>] [-m <max-average>] [-c <reduction>]"
 	        sys.exit()
        
-        g = Graph(num_vertices, num_edges, num_partitions, radius, deviation, max_average, sse, sse_reduction)
+        g = Graph(num_vertices, num_edges, num_partitions, radius, max_average, sse, sse_reduction)
 	    
 	g.set_graph()
 	g.write_graph(output_file_name + ".graph")
