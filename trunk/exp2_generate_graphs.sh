@@ -15,7 +15,7 @@ do
   for((g=1; g<=$num_graphs; g++))
   do
     sse=$n
-    sse_reduction=`echo "scale=10; $std_approximation/$num_graphs" | bc`
+    sse_reduction=`echo "scale=10; $n/2" | bc`
     echo "python graph_generator.py -o syn_$n\_$g -v $n -e $num_edges -p $num_partitions -r $radius -m $max_value -c $sse_reduction -s $sse"
     python graph_generator.py -o syn_$n\_$g -v $n -e $num_edges -p $num_partitions -r $radius -m $max_value -c $sse_reduction -s $sse
   done
