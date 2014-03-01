@@ -1201,9 +1201,16 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 	{
 		output_file << v;
 		
-		for(unsigned int d = 0; d < partition_sizes.at(v)->size(); d++)
+		for(unsigned int d = 0; d <= max_radius; d++)
 		{
-			output_file << "," << partition_sizes.at(v)->at(d);
+			if(d < partition_sizes.at(v)->size())
+			{
+				output_file << "," << partition_sizes.at(v)->at(d);
+			}
+			else
+			{
+				output_file << ",0";
+			}
 		}
 		
 		output_file << "\n";
