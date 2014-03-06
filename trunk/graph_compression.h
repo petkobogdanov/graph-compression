@@ -426,12 +426,14 @@ class SliceTreeSamp: public SliceTree
 		 * @throws 
 		**/
 		SliceTreeSamp(Graph& _graph, const unsigned int max_radius, 
-			const double _delta, const unsigned int _num_samples):
+			const double _delta, const unsigned int _num_samples,
+			const double _rho):
 			SliceTree(_graph, max_radius)
 		{
 			delta = _delta;
 			theta = compute_theta();
 			num_samples = _num_samples;
+			rho = _rho;
 			
 			/*Initializing data structures that are used to compute
 			* upper and lower bounds on the sizes of partitions*/
@@ -488,6 +490,7 @@ class SliceTreeSamp: public SliceTree
 		double delta;
 		double theta;
 		unsigned int num_samples;
+		double rho;
 		static unsigned int num_pruned_bound_1;
 		static unsigned int num_pruned_bound_2;
 		static unsigned int num_pruned_bound_3;
@@ -708,8 +711,10 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 		 * @throws 
 		**/
 		SliceTreeBiasSamp(Graph& _graph, const unsigned int _max_radius, 
-			const double _delta, const unsigned int _num_samples):
-			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples)
+			const double _delta, const unsigned int _num_samples, 
+			const double _rho):
+			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples,
+				_rho)
 		{
 			graph->set_biased_sample(_num_samples);
 			
@@ -757,8 +762,10 @@ class SliceTreeUnifSamp: public SliceTreeSamp
 		 * @throws 
 		**/
 		SliceTreeUnifSamp(Graph& _graph, const unsigned int _max_radius, 
-			const double _delta, const unsigned int _num_samples):
-			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples)
+			const double _delta, const unsigned int _num_samples,
+			const double _rho):
+			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples,
+			_rho)
 		{
 			graph->set_uniform_sample(_num_samples);
 			

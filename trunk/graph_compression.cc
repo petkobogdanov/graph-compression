@@ -968,7 +968,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 	 * and uses this slice to prune new candidates slices. 
 	 */
 	while(s < upper_bounds.size() &&
-		upper_bounds.at(s)->value > opt_reduction)
+		rho * upper_bounds.at(s)->value > opt_reduction)
 	{
 		radius = upper_bounds.at(s)->radius;
 
