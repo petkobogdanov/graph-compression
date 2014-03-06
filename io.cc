@@ -30,6 +30,7 @@ unsigned int Parameters::num_samples = 0;
 unsigned int Parameters::num_threads = 1;
 double Parameters::delta = 0.9;
 unsigned int Parameters::max_radius = UINT_MAX;
+double Parameters::rho = 1;
 std::vector<std::string> Parameters::compression_algorithms;
 
 /**
@@ -53,6 +54,7 @@ void Parameters::print_usage()
 	std::cout << " -t, --numthreads		number of threads to be used" << std::endl;
 	std::cout << " -d, --delta		confidence parameter for compression" << std::endl;
 	std::cout << " -m, --maxradius		max radius for slice tree compression" << std::endl;
+	std::cout << " -r, --rho		approximation constant" << std::endl;
 }
 
 /**
@@ -87,6 +89,7 @@ bool Parameters::read(int argc, char** argv) throw (InvalidParameterSettingExcep
 		>> GetOpt::Option('t', "numthreads", num_threads)
 		>> GetOpt::Option('d', "delta", delta)
 		>> GetOpt::Option('m', "maxradius", max_radius)
+		>> GetOpt::Option('r', "rho", rho)
 		;
 	}
 	catch(GetOpt::GetOptEx& e)

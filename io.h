@@ -58,6 +58,7 @@ class Parameters
 		static unsigned int num_threads;
 		static double delta;
 		static unsigned int max_radius;
+		static double rho;
 		
 		/*List of valid compression algorithms for checking*/
 		static std::vector < std::string > compression_algorithms;

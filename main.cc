@@ -112,7 +112,8 @@ int main(int argc, char** argv)
 			if(Parameters::budget > 0)
 			{
 				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::num_samples); 
+					Parameters::delta, Parameters::num_samples,
+					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -123,7 +124,8 @@ int main(int argc, char** argv)
 					*graph);
 				
 				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::num_samples); 
+					Parameters::delta, Parameters::num_samples,
+					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
@@ -139,7 +141,8 @@ int main(int argc, char** argv)
 			if(Parameters::budget > 0)
 			{
 				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::num_samples); 
+					Parameters::delta, Parameters::num_samples,
+					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -150,7 +153,8 @@ int main(int argc, char** argv)
 					*graph);
 				
 				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
-					Parameters::delta, Parameters::num_samples);
+					Parameters::delta, Parameters::num_samples, 
+					Parameters::rho);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
