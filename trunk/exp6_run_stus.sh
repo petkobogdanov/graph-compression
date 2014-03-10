@@ -18,8 +18,8 @@ do
     for h in ${rho[@]}
     do
       num_samples=`python -c "from math import ceil; print int(ceil($num_vertices*$c))"`
-      echo "graph_compression -g dblp.graph -v dblp.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s dblp.sizes -m $radius -r $h > out_stus_$c\_$h\_$r.txt"
-      ./graph_compression -g dblp.graph -v dblp.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s dblp.sizes -m $radius -r $h > out_stus_$c\_$h\_$r.txt
+      echo "graph_compression -g dblp.graph -v dblp_dm.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s dblp.sizes -m $radius -r $h > out_stus_$c\_$h\_$r.txt"
+      ./graph_compression -g dblp.graph -v dblp_dm.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s dblp.sizes -m $radius -r $h > out_stus_$c\_$h\_$r.txt
     done
   done
 done
