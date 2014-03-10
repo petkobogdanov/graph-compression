@@ -23,7 +23,7 @@ do
       optimal_reduction=`echo ${optimal_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
       for((run=1; run<=$num_runs; run++))
       do
-        alg_reduction=`grep sse_reduction out\_$alg\_$u\_$delta\_$exp\_$run.dat | cut -d ' ' -f3`
+        alg_reduction=`grep sse_reduction out\_$alg\_$u\_$exp\_$delta\_$run.dat | cut -d ' ' -f3`
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
         avg_approximation=`echo "scale=10; $avg_approximation+$approximation" | bc`
@@ -36,7 +36,7 @@ do
       optimal_reduction=`grep optimal_sse_reduction syn\_$u\_$exp.stats | cut -d ' ' -f3`
       for((run=1; run<=$num_runs; run++))
       do
-        alg_reduction=`grep sse_reduction out\_$alg\_$u\_$delta\_$exp\_$run.dat | cut -d ' ' -f3`
+        alg_reduction=`grep sse_reduction out\_$alg\_$u\_$exp\_$delta\_$run.dat | cut -d ' ' -f3`
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
         std_approximation=`echo "scale=10; $std_approximation+($avg_approximation-$approximation)^2" | bc`
@@ -87,7 +87,7 @@ do
     do
       for((run=1; run<=$num_runs; run++))
       do
-        compression_time=`grep compression_time out\_$alg\_$u\_$delta\_$exp\_$run.dat | cut -d ' ' -f3`
+        compression_time=`grep compression_time out\_$alg\_$u\_$exp\_$delta\_$run.dat | cut -d ' ' -f3`
         avg_compression_time=`echo "scale=10; $avg_compression_time+$compression_time" | bc`
       done
     done
@@ -97,7 +97,7 @@ do
     do
       for((run=1; run<=$num_runs; run++))
       do
-        compression_time=`grep compression_time out\_$alg\_$u\_$delta\_$exp\_$run.dat | cut -d ' ' -f3`
+        compression_time=`grep compression_time out\_$alg\_$u\_$exp\_$delta\_$run.dat | cut -d ' ' -f3`
         std_compression_time=`echo "scale=10; $std_compression_time+($avg_compression_time-$compression_time)^2" | bc`
       done
     done
