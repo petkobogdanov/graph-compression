@@ -1,6 +1,5 @@
 #!/bin/bash
-
-#       TODO
+#       Computes results for experiment 3.
 #       @Arlei Silva
 
 num_graphs=10
@@ -29,7 +28,7 @@ do
         avg_approximation=`echo "scale=10; $avg_approximation+$approximation" | bc`
       done
     done
-    avg_approximation=`echo "scale=10; $avg_approximation/($num_graphs\*$num_runs)" | bc`
+    avg_approximation=`echo "scale=10; $avg_approximation/($num_graphs*$num_runs)" | bc`
     std_approximation=0
     for((exp=1; exp<=$num_graphs; exp++))
     do
@@ -42,7 +41,7 @@ do
         std_approximation=`echo "scale=10; $std_approximation+($avg_approximation-$approximation)^2" | bc`
       done
     done
-    std_approximation=`echo "scale=10; sqrt($std_approximation/($num_graphs\*$num_runs))" | bc`
+    std_approximation=`echo "scale=10; sqrt($std_approximation/($num_graphs*$num_runs))" | bc`
     echo "$u	$avg_approximation	$std_approximation" >> avg_std_approx_error_reduction\_$alg.dat
   done
 done
@@ -82,16 +81,16 @@ do
   rm avg_std_compression_time\_$alg.dat
   for u in ${radius[@]}
   do
-    avg_compresion_time=0
+    avg_compression_time=0
     for((exp=1; exp<=$num_graphs; exp++))
     do
       for((run=1; run<=$num_runs; run++))
       do
         compression_time=`grep compression_time out\_$alg\_$u\_$exp\_$delta\_$run.txt | cut -d ' ' -f3`
-        avg_compression_time=`echo "scale=10; $avg_compression_time+$compression_time" | bc`
+       avg_compression_time=`echo "scale=10; $avg_compression_time+$compression_time" | bc`
       done
     done
-    avg_compression_time=`echo "scale=10; $avg_compression_time/($num_graphs\*$num_runs)" | bc`
+    avg_compression_time=`echo "scale=10; $avg_compression_time/($num_graphs*$num_runs)" | bc`
     std_compression_time=0
     for((exp=1; exp<=$num_graphs; exp++))
     do
@@ -101,7 +100,7 @@ do
         std_compression_time=`echo "scale=10; $std_compression_time+($avg_compression_time-$compression_time)^2" | bc`
       done
     done
-    std_compression_time=`echo "scale=10; sqrt($std_compression_time/($num_graphs\*$num_runs))" | bc`
+    std_compression_time=`echo "scale=10; sqrt($std_compression_time/($num_graphs*$num_runs))" | bc`
     echo "$u	$avg_compression_time	$std_compression_time" >> avg_std_compression_time\_$alg.dat
   done
 done
