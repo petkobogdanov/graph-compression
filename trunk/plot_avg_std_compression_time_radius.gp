@@ -10,5 +10,5 @@ set yrange [0:2400]
 set xtics 1
 set ytics 500
 set key top right
-plot "avg_std_compression_time_st.dat" using 1:2 title 'ST' with linespoints lt 1 lc 1 lw 4 pt 2 ps 4, "avg_std_compression_time_stus.dat" using 1:2 title 'STUS' with linespoints lt 1 lc 2 lw 4 pt 5 ps 4,"avg_std_compression_time_stbs.dat" using 1:2 title 'STIS' with linespoints lt 1 lc 3 lw 4 pt 7 ps 4
+plot "avg_std_compression_time_st.dat" using 1:2 notitle with linespoints lt 1 lc 1 lw 4 pt 2 ps 4, "avg_std_compression_time_stus.dat" using 1:2 notitle with linespoints lt 1 lc 2 lw 4 pt 5 ps 4,"avg_std_compression_time_stbs.dat" using 1:2 notitle with linespoints lt 1 lc 3 lw 4 pt 7 ps 4
 
