@@ -7,13 +7,8 @@ radius=(1 2 3)
 num_runs=10
 delta=0.1
 
-rm avg_pruning_radius.dat
-echo "X STUS STIS" >> avg_pruning_radius.dat
-
 for u in ${radius[@]}
 do
-  rm avg_pruning_radius_$u.dat
-  echo "X 1 2" >> avg_pruning_radius_$u.dat
   avg_rate_pruned_1_stbs=0
   avg_rate_pruned_2_stbs=0
   avg_rate_pruned_stbs=0
@@ -38,7 +33,7 @@ do
   avg_rate_pruned_1_stbs=`echo "scale=10; $avg_rate_pruned_1_stbs/($num_graphs*$num_runs)" | bc`
   avg_rate_pruned_2_stbs=`echo "scale=10; $avg_rate_pruned_2_stbs/($num_graphs*$num_runs)" | bc`
   avg_rate_pruned_stbs=`echo "scale=10; $avg_rate_pruned_stbs/($num_graphs*$num_runs)" | bc`
-  echo "STIS $avg_rate_pruned_1_stbs $avg_rate_pruned_2_stbs" >> avg_pruning_radius_$u.dat
+  echo "STIS $avg_rate_pruned_1_stbs $avg_rate_pruned_2_stbs" > avg_pruning_radius_$u\_stbs.dat
   
   avg_rate_pruned_1_stus=0
   avg_rate_pruned_2_stus=0
@@ -65,8 +60,7 @@ do
   avg_rate_pruned_2_stus=`echo "scale=10; $avg_rate_pruned_2_stus/($num_graphs*$num_runs)" | bc`
   avg_rate_pruned_stus=`echo "scale=10; $avg_rate_pruned_stus/($num_graphs*$num_runs)" | bc`
 
-  echo "$u $avg_rate_pruned_stus $avg_rate_pruned_stbs" >> avg_pruning_radius.dat
-  echo "STUS $avg_rate_pruned_1_stus $avg_rate_pruned_2_stus" >> avg_pruning_radius_$u.dat
+  echo "STUS $avg_rate_pruned_1_stus $avg_rate_pruned_2_stus" > avg_pruning_radius_$u\_stus.dat
 done
 
 
