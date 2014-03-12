@@ -4,7 +4,7 @@
 #       @Arlei Silva
 
 radius=2
-num_vertices=(200000 400000 800000 1600000)
+num_vertices=(100000 200000 300000 400000 500000)
 
 for n in ${num_vertices[@]}
 do
