@@ -6,10 +6,10 @@
 radius=2
 num_partitions=2
 delta=0.1
-num_runs=10
-sampling_ratios=(0.02 0.04 0.06 0.08 0.1 0.12 0.14)
+num_runs=5
+sampling_ratios=(0.05 0.10 0.15 0.20)
 num_vertices=1291210
-rho=(0.75 1.0)
+rho=(1.0)
 
 for c in ${sampling_ratios[@]}
 do
