@@ -18,7 +18,7 @@ do
     do
       num_samples=`python -c "from math import ceil; print int(ceil($n*$s))"`
       echo "graph_compression -g syn_$n.graph -v syn_$n.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$n.sizes -m $radius > out_stbs_$n\_$s\_$r.txt"
-#      ./graph_compression -g syn_$n.graph -v syn_$n.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$n.sizes -m $radius > out_stbs_$n\_$s\_$r.txt
+      ./graph_compression -g syn_$n.graph -v syn_$n.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$n.sizes -m $radius > out_stbs_$n\_$s\_$r.txt
     done
   done
 done
