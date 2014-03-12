@@ -8,14 +8,17 @@ num_partitions=2
 num_samples=10000
 delta=0.1
 num_runs=10
-num_vertices=400000
 reduction_ratios=(0.0 0.25 0.5 0.75 1.0)
+num_graphs=10
 
-for c in ${reduction_ratios[@]}
+for((g=1; g<=$num_graphs; g++))
 do
-  for((r=1; r<=$num_runs; r++))
+  for c in ${reduction_ratios[@]}
   do
-    echo "graph_compression -g syn_$c.graph -v syn_$c.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$c.sizes -m $radius > out_stbs_$c\_$r.txt"
-      ./graph_compression -g syn_$c.graph -v syn_$c.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$c.sizes -m $radius > out_stbs_$c\_$r.txt
+    for((r=1; r<=$num_runs; r++))
+    do
+      echo "graph_compression -g syn_$c\_$g.graph -v syn_$c\_$g.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$c\_$g.sizes -m $radius > out_stbs_$c\_$g\_$r.txt"
+      ./graph_compression -g syn_$c\_$g.graph -v syn_$c\_$g.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$c\_$g.sizes -m $radius > out_stbs_$c\_$g\_$r.txt
+    done
   done
 done
