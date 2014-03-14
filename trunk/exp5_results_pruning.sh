@@ -33,7 +33,7 @@ do
   avg_rate_pruned_1_stbs=`echo "scale=10; $avg_rate_pruned_1_stbs/($num_graphs*$num_runs)" | bc`
   avg_rate_pruned_2_stbs=`echo "scale=10; $avg_rate_pruned_2_stbs/($num_graphs*$num_runs)" | bc`
   avg_rate_pruned_stbs=`echo "scale=10; $avg_rate_pruned_stbs/($num_graphs*$num_runs)" | bc`
-  echo "STIS $avg_rate_pruned_1_stbs $avg_rate_pruned_2_stbs" > avg_pruning_radius_$c\_stbs.dat
+  echo "STIS $avg_rate_pruned_1_stbs $avg_rate_pruned_2_stbs" > avg_pruning_reduction_$c\_stbs.dat
   
   avg_rate_pruned_1_stus=0
   avg_rate_pruned_2_stus=0
@@ -60,7 +60,7 @@ do
   avg_rate_pruned_2_stus=`echo "scale=10; $avg_rate_pruned_2_stus/($num_graphs*$num_runs)" | bc`
   avg_rate_pruned_stus=`echo "scale=10; $avg_rate_pruned_stus/($num_graphs*$num_runs)" | bc`
 
-  echo "STUS $avg_rate_pruned_1_stus $avg_rate_pruned_2_stus" > avg_pruning_radius_$c\_stus.dat
+  echo "STUS $avg_rate_pruned_1_stus $avg_rate_pruned_2_stus" > avg_pruning_reduction_$c\_stus.dat
 done
 
 
