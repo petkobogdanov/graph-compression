@@ -16,7 +16,7 @@ do
   do
     for((r=1; r<=$num_runs; r++))
     do
-        num_samples=`python -c "from math import ceil; print int(ceil($n*$s))"`
+        num_samples=`python -c "from math import ceil; print int(ceil(400000*$s))"`
         echo "graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$g.sizes -m $radius > out_stbs_$g\_$s\_$r.txt"
         ./graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STBS -p $num_partitions -n $num_samples -d $delta -s syn_$g.sizes -m $radius > out_stbs_$g\_$s\_$r.txt
     done
