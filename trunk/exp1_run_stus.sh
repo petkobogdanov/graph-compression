@@ -6,21 +6,19 @@
 num_graphs=10
 radius=2
 num_partitions=2
-num_samples=(5000 10000 15000 20000 25000)
-delta=(0.05 0.1)
+sampling_rate=(0.01 0.02 0.04 0.08 0.16)
 num_runs=10
+delta=0.1
 
-for s in ${num_samples[@]}
+for s in ${sampling_rate[@]}
 do
   for((g=1; g<=$num_graphs; g++))
   do
     for((r=1; r<=$num_runs; r++))
     do
-      for d in ${delta[@]}
-      do
-         echo "/graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STUS -p $num_partitions -n $s -d $d -s syn_$g.sizes -m $radius > out_stus_$g\_$s\_$d\_$r.txt"
-        ./graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STUS -p $num_partitions -n $s -d $d -s syn_$g.sizes -m $radius > out_stus_$g\_$s\_$d\_$r.txt
-      done
+        num_samples=`python -c "from math import ceil; print int(ceil($n*$s))"`
+        echo "graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STUS -p $num_partitions -n $num_samples -d $delta -s syn_$g.sizes -m $radius > out_stus_$g\_$s\_$r.txt"
+        ./graph_compression -g syn_$g.graph -v syn_$g.data -o output -c STUS -p $num_partitions -n $num_samples -d $delta -s syn_$g.sizes -m $radius > out_stus_$g\_$s\_$r.txt
     done
   done
 done
