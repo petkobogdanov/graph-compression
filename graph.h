@@ -222,10 +222,12 @@ class Graph
 		/**
 		 * Reads the pre-computed partition sizes from a file.
 		 * @param input_file_name input file
+		 * @param max_radius maximum radius
 		 * @return
 		 * @throws
 		**/
-		void read_partition_sizes(const std::string& input_file_name);
+		void read_partition_sizes(const std::string& input_file_name,
+			const unsigned int max_radius);
 		
 		/**
 		 * Pre-computes the partitions sizes for all centers and radius
@@ -431,7 +433,14 @@ class Graph
 		const inline unsigned int get_partition_size(const unsigned int center, 
 			const unsigned int radius) const
 		{
-			return partition_sizes.at(center)->at(radius);
+			if(radius < partition_sizes.at(center)->size())
+			{
+				return partition_sizes.at(center)->at(radius);
+			}
+			else
+			{
+				return partition_sizes.at(center)->back();
+			}
 		}
 
 		/**

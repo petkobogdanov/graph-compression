@@ -32,11 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "graph.h"
 #include "perf.h"
 
-#if  __x86_64__
-	#define SIZE_FLOAT_INT 8
-#else
-	#define SIZE_FLOAT_INT 4
-#endif
+#define SIZE_FLOAT_INT 8
 
 /**
  * Slice tree node
