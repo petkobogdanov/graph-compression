@@ -491,6 +491,8 @@ void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 	    
 	std::vector<unsigned int> distances;
 	distances.reserve(num_vertices);
+
+	graph_diameter = max_radius;
 	
 	for(unsigned int v = 0; v < num_vertices; v++)
 	{
@@ -1201,15 +1203,11 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 	{
 		output_file << v;
 		
-		for(unsigned int d = 0; d <= max_radius; d++)
+		for(unsigned int d = 0; d < partition_sizes.at(v)->size(); d++)
 		{
-			if(d < partition_sizes.at(v)->size())
+			if(d <= max_radius)
 			{
 				output_file << "," << partition_sizes.at(v)->at(d);
-			}
-			else
-			{
-				output_file << ",0";
 			}
 		}
 		
@@ -1225,13 +1223,16 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
  * @return
  * @throws
 **/
-void Graph::read_partition_sizes(const std::string& input_file_name)
+void Graph::read_partition_sizes(const std::string& input_file_name,
+	const unsigned int max_radius)
 {
 	std::ifstream input_file(input_file_name.c_str());
 	partition_sizes.reserve(size());
 	unsigned int i = 0;
 	std::vector< std:: string > line_vec;
 	std::string line_str;
+
+	graph_diameter = 0;
 	
 	for(unsigned int v = 0; v < size(); v++)
 	{
@@ -1249,6 +1250,11 @@ void Graph::read_partition_sizes(const std::string& input_file_name)
 		for(unsigned int j = 1; j < line_vec.size(); j++)
 		{
 			partition_sizes.at(i)->push_back(atoi(line_vec.at(j).c_str()));
+		}
+
+		if(partition_sizes.at(i)->size() - 1 > graph_diameter)
+		{
+			graph_diameter = partition_sizes.at(i)->size();
 		}
 
 		std::getline(input_file, line_str);
