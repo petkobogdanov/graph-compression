@@ -17,14 +17,14 @@ do
     avg_compression_time=0
     for((run=1; run<=$num_runs; run++))
     do
-      compression_time=`grep compression_time out\_$alg\_$s\_$run.txt | cut -d ' ' -f3`
+      compression_time=`grep compression_time out\_$alg\_$s\_$delta\_$run.txt | cut -d ' ' -f3`
       avg_compression_time=`echo "scale=10; $avg_compression_time+$compression_time" | bc`
     done
     avg_compression_time=`echo "scale=10; $avg_compression_time/$num_runs" | bc`
     std_compression_time=0
     for((run=1; run<=$num_runs; run++))
     do
-      compression_time=`grep compression_time out\_$alg\_$s\_$run.txt | cut -d ' ' -f3`
+      compression_time=`grep compression_time out\_$alg\_$s\_$delta\_$run.txt | cut -d ' ' -f3`
       std_compression_time=`echo "scale=10; $std_compression_time+($avg_compression_time-$compression_time)^2" | bc`
     done
     std_compression_time=`echo "scale=10; sqrt($std_compression_time/$num_runs)" | bc`
@@ -37,6 +37,6 @@ for s in ${sampling_rate[@]}
 do
   avg_compression_time=`grep compression_time out_st.txt | cut -d ' ' -f3`
   std_compression_time=0
-  echo "$s	$compression_time	$std_compression_time" >> avg_std_compression_time_samples_st.dat
+  echo "$s	$avg_compression_time	$std_compression_time" >> avg_std_compression_time_samples_st.dat
 done
 
