@@ -4,7 +4,7 @@
 
 sampling_rate=(0.05 0.10 0.15 0.20)
 num_runs=10
-delta=0.1
+delta=1.0
 
 algorithms=('stbs' 'stus')
 
