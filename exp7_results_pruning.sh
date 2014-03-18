@@ -28,6 +28,6 @@ do
   avg_rate_pruned_1_stbs=`echo "scale=10; $avg_rate_pruned_1_stbs/$num_runs" | bc`
   avg_rate_pruned_2_stbs=`echo "scale=10; $avg_rate_pruned_2_stbs/$num_runs" | bc`
   avg_rate_pruned_stbs=`echo "scale=10; $avg_rate_pruned_stbs/$num_runs" | bc`
-  echo "STIS $avg_rate_pruned_1_stbs $avg_rate_pruned_2_stbs" > avg_pruning_rho_$s\_stbs.dat
+  echo "STIS $avg_rate_pruned_1_stbs $avg_rate_pruned_2_stbs" > avg_pruning_rho_$r\_stbs.dat
 done
 
