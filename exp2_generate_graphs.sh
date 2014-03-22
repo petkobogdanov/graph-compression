@@ -3,12 +3,12 @@
 #       Generates a number of synthetic graphs with given properties using a synthetic graph generator
 #       @Arlei Silva
 
-num_graphs=10
+num_graphs=1
 radius=2
 max_value=1
 num_edges=5
 num_partitions=2
-num_vertices=(200000 400000 600000 800000 1000000)
+num_vertices=(10000 100000 1000000 10000000)
 
 for n in ${num_vertices[@]}
 do
