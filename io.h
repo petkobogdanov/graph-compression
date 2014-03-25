@@ -59,6 +59,7 @@ class Parameters
 		static double delta;
 		static unsigned int max_radius;
 		static double rho;
+		static bool directed;
 		
 		/*List of valid compression algorithms for checking*/
 		static std::vector < std::string > compression_algorithms;

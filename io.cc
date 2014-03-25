@@ -31,6 +31,7 @@ unsigned int Parameters::num_threads = 1;
 double Parameters::delta = 0.9;
 unsigned int Parameters::max_radius = UINT_MAX;
 double Parameters::rho = 1;
+bool Parameters::directed = false;
 std::vector<std::string> Parameters::compression_algorithms;
 
 /**
@@ -55,6 +56,7 @@ void Parameters::print_usage()
 	std::cout << " -d, --delta		confidence parameter for compression" << std::endl;
 	std::cout << " -m, --maxradius		max radius for slice tree compression" << std::endl;
 	std::cout << " -r, --rho		approximation constant" << std::endl;
+	std::cout << " -e, --directed		if the input graph is directed" << std::endl;
 }
 
 /**
@@ -72,11 +74,12 @@ bool Parameters::read(int argc, char** argv) throw (InvalidParameterSettingExcep
 	{
 		GetOpt::GetOpt_pp ops(argc, argv);
  
-		if (ops >> GetOpt::OptionPresent('h', "help"))
+		if (ops >> GetOpt::OptionPresent('e', "directed"))
 		{
-			print_usage();
-			return false;
+			directed = true;
 		}
+		
+		if (ops >> GetOpt::OptionPresent('h', "help"))
 
 		ops >> GetOpt::Option('g', "graph", graph_file_name, "")
 		>> GetOpt::Option('v', "values", values_file_name, "")
