@@ -74,7 +74,7 @@ class Graph
 		 * @throws 
 		 **/
 
-		Graph(const std::string& graph_file_name, const std::string& values_file_name) throw (std::ios_base::failure);
+		Graph(const std::string& graph_file_name, const std::string& values_file_name, const bool directed) throw (std::ios_base::failure);
 		
 		/**
 		 * Graph constructor
@@ -477,6 +477,7 @@ class Graph
 		}
 	private:
 		std::vector< std::list<unsigned int>* > adjacency_list;
+		std::vector< std::list<unsigned int>* > back_adjacency_list;
 		unsigned short int** distance_matrix;
 		std::map<unsigned int, double> vertex_values;
 		std::map<unsigned int, std::string> vertex_names;
@@ -492,6 +493,7 @@ class Graph
 		unsigned int num_samples;
 		double sum_values;
 		double sum_weights;
+		bool directed;
 		std::vector<std::vector<unsigned int>*> partition_sizes;
 		
 		/**

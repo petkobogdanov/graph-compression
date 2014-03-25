@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 	if(Parameters::read(argc,argv))
 	{
 		/*Reading input graph with values*/
-		Graph* graph = new Graph(Parameters::graph_file_name, Parameters::values_file_name);
+		Graph* graph = new Graph(Parameters::graph_file_name, Parameters::values_file_name, Parameters::directed);
 		
 		if(Parameters::compression_algorithm == "")
 		{

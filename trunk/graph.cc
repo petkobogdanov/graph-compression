@@ -36,8 +36,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
  * @return 
  * @throws 
 **/
-Graph::Graph(const std::string& graph_file_name, const std::string& values_file_name) throw (std::ios_base::failure)
+Graph::Graph(const std::string& graph_file_name, const std::string& values_file_name,
+	const bool _directed) throw (std::ios_base::failure)
 {
+	directed = _directed;
 	read_graph(graph_file_name, values_file_name);
 	graph_diameter = USHRT_MAX;
 	distance_matrix = NULL;
@@ -130,6 +132,7 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 	input_values_file.close();
 	
 	adjacency_list.reserve(vertex_ids.size());
+	back_adjacency_list.reserve(vertex_ids.size());
 
 	for(unsigned int v = 0; v < vertex_ids.size(); v++)
 	{
@@ -156,7 +159,17 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 		vertex_two = line_vec[1];
 
 		adjacency_list[vertex_ids[vertex_one]]->push_back(vertex_ids[vertex_two]);
-		adjacency_list[vertex_ids[vertex_two]]->push_back(vertex_ids[vertex_one]);
+		
+		if(! directed)
+		{
+			adjacency_list[vertex_ids[vertex_two]]->push_back(
+				vertex_ids[vertex_one]);
+		}
+		else
+		{
+			back_adjacency_list[vertex_ids[vertex_two]]->push_back(
+				vertex_ids[vertex_one]);
+		}
 
 		std::getline(input_graph_file, line_str);
 	}
@@ -260,6 +273,15 @@ Graph::~Graph()
 	for(unsigned int v = 0; v < adjacency_list.size(); v++)
 	{
 		delete adjacency_list[v];
+	}
+
+	if(directed)
+	{
+		for(unsigned int v = 0; v < back_adjacency_list.size();
+			v++)
+		{
+ 			delete back_adjacency_list[v];
+		}
 	}
 	
 	for(unsigned int v = 0; v < partition_sizes.size(); v++)
@@ -504,6 +526,18 @@ void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 	unsigned int u;
 	unsigned int z;
 	unsigned int max_distance;
+	std::vector< std::list<unsigned int>* >* back_adj_list;
+
+	/*In case the graph is directed, BFS from the
+	samples to every node must use backward edges*/
+	if(directed)
+	{
+		back_adj_list = &back_adjacency_list;
+	}
+	else
+	{
+		back_adj_list = &adjacency_list;
+	}
 	
 	for (std::list<unsigned int>::iterator v = samples.begin(); 
 		v != samples.end(); ++v)
@@ -524,8 +558,8 @@ void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 			u = queue.front();
 			queue.pop();
 			
-			for (std::list<unsigned int>::iterator it = adjacency_list[u]->begin(); 
-				it != adjacency_list[u]->end(); ++it)
+			for (std::list<unsigned int>::iterator it = back_adj_list->at(u)->begin(); 
+				it != back_adj_list->at(u)->end(); ++it)
 			{
 				z = *it;
 
