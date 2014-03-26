@@ -139,6 +139,15 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 		adjacency_list.push_back(new std::list<unsigned int>);
 	}
 
+	if(directed)
+	{
+		for(unsigned int v = 0; v < vertex_ids.size(); v++)
+		{
+			back_adjacency_list.push_back(new std::list<unsigned int>);
+		}
+	}
+
+
 	std::ifstream input_graph_file(graph_file_name.c_str(), std::ios::in);
 
 	if(! input_graph_file.is_open())
@@ -1111,7 +1120,8 @@ void build_distance_str(const unsigned int root,
 	for(u = 0; u < adjacency_list.size(); u++)
 	{
 		if(distances[u] > max_distance
-			&& distances[u] <= max_radius) 
+			&& distances[u] <= max_radius
+			&& distances[u] < UINT_MAX) 
 		{
 			max_distance = distances[u];
 		}
@@ -1126,7 +1136,7 @@ void build_distance_str(const unsigned int root,
 
 	for(u = 0; u < adjacency_list.size(); u++)
 	{
-		if(distances[u] <= max_radius)
+		if(distances[u] <= max_radius && distances[u] < UINT_MAX)
 		{
 			partition_sizes.at(root)->at(distances[u])++;
 		}
@@ -1203,7 +1213,7 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 	}
 
 	pthread_t* threads = (pthread_t*) malloc (num_threads * sizeof(pthread_t));
-
+	
 	for(unsigned int t = 0; t < num_threads; t++)
 	{
 		parameter = new PthreadParameters;
