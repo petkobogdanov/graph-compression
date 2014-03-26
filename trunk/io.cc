@@ -80,6 +80,11 @@ bool Parameters::read(int argc, char** argv) throw (InvalidParameterSettingExcep
 		}
 		
 		if (ops >> GetOpt::OptionPresent('h', "help"))
+		{
+			print_usage();
+			
+			return false;
+		}
 
 		ops >> GetOpt::Option('g', "graph", graph_file_name, "")
 		>> GetOpt::Option('v', "values", values_file_name, "")
@@ -98,20 +103,6 @@ bool Parameters::read(int argc, char** argv) throw (InvalidParameterSettingExcep
 	catch(GetOpt::GetOptEx& e)
 	{
 		std::cerr << "Fatal error while parsing the command line parameters!" << std::endl;
-		std::cerr << "Try \'./graph_compression --help\' for more information." << std::endl;
-		throw invalid_parameters;
-	}
-
-	if(graph_file_name == "")
-	{
-		std::cerr << "graph_compression: undefined graph input file name" << std::endl << std::endl;
-		std::cerr << "Try \'./graph_compression --help\' for more information." << std::endl;
-		throw invalid_parameters;
-	}
-	
-	if(values_file_name == "")
-	{
-		std::cerr << "graph_compression: undefined values input file name" << std::endl << std::endl;
 		std::cerr << "Try \'./graph_compression --help\' for more information." << std::endl;
 		throw invalid_parameters;
 	}
