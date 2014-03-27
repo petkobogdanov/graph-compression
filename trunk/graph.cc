@@ -1245,7 +1245,7 @@ void Graph::pre_compute_partition_sizes(const unsigned int num_threads,
 	
 	for(unsigned int v = 0; v < size(); v++)
 	{
-		output_file << v;
+		output_file << name(v);
 		
 		for(unsigned int d = 0; d < partition_sizes.at(v)->size(); d++)
 		{
