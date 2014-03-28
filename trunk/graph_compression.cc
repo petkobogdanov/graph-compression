@@ -2147,9 +2147,11 @@ const double SliceTree::sse_partition(const std::vector<unsigned int>& partition
  * @return
  * @throws
 **/
-void print_st_node(st_node_t* st_node, unsigned int depth)
+void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid)
 {
-	std::cout << "center=" << st_node->center << " radius=" 
+	std::stringstream mid;
+	mid<<"("<<st_node->center<<","<<st_node->radius<<","<<depth<<")";	
+	std::cout <<pid << "-" << mid.str() << " center=" << st_node->center << " radius=" 
 		<< st_node->radius << " error_p = " << st_node->error_partition << " mean = " << st_node->average << std::endl;
 	
 	if(st_node->left != NULL)
@@ -2159,7 +2161,7 @@ void print_st_node(st_node_t* st_node, unsigned int depth)
 			std::cout << " ";
 		}
 		
-		print_st_node(st_node->left, depth+1);
+		print_st_node(st_node->left, depth+1, mid.str());
 	}
 	
 	if(st_node->right != NULL)
@@ -2169,7 +2171,7 @@ void print_st_node(st_node_t* st_node, unsigned int depth)
 			std::cout << " ";
 		}
 	
-		print_st_node(st_node->right, depth+1);
+		print_st_node(st_node->right, depth+1, mid.str());
 	}
 
 	if(st_node->left == NULL && st_node->right == NULL)
@@ -2191,7 +2193,7 @@ void print_st_node(st_node_t* st_node, unsigned int depth)
 **/
 void SliceTree::print() const
 {
-	print_st_node(tree, 0);
+	print_st_node(tree, 0, "(root)");
 }
 
 /**
