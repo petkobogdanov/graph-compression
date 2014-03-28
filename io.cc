@@ -32,6 +32,7 @@ double Parameters::delta = 0.9;
 unsigned int Parameters::max_radius = UINT_MAX;
 double Parameters::rho = 1;
 bool Parameters::directed = false;
+bool Parameters::print_tree = false;
 std::vector<std::string> Parameters::compression_algorithms;
 
 /**
@@ -57,6 +58,7 @@ void Parameters::print_usage()
 	std::cout << " -m, --maxradius		max radius for slice tree compression" << std::endl;
 	std::cout << " -r, --rho		approximation constant" << std::endl;
 	std::cout << " -e, --directed		if the input graph is directed" << std::endl;
+	std::cout << " -i, --print-tree		prints the ST (only when comrression is ST/STUS/STBS) " << std::endl;
 }
 
 /**
@@ -77,6 +79,10 @@ bool Parameters::read(int argc, char** argv) throw (InvalidParameterSettingExcep
 		if (ops >> GetOpt::OptionPresent('e', "directed"))
 		{
 			directed = true;
+		}
+		if (ops >> GetOpt::OptionPresent('i', "print-tree"))
+		{
+			print_tree = true;
 		}
 		
 		if (ops >> GetOpt::OptionPresent('h', "help"))

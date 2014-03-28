@@ -103,6 +103,11 @@ int main(int argc, char** argv)
 			}
 			
 			exec_time_compression->stop();
+			
+			if (Parameters::print_tree) {
+				SliceTree* st = (SliceTree*) alg; 			
+				st->print();
+			}
 		}
 		
 		if(Parameters::compression_algorithm == "STUS")
@@ -132,6 +137,10 @@ int main(int argc, char** argv)
 			}
 			
 			exec_time_compression->stop();
+			if (Parameters::print_tree) {
+				SliceTreeUnifSamp* st = (SliceTreeUnifSamp*) alg; 		
+				st->print();
+			}
 		}
 		
 		if(Parameters::compression_algorithm == "STBS")
@@ -158,9 +167,14 @@ int main(int argc, char** argv)
 					Parameters::rho);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
+				
 			}
 			
 			exec_time_compression->stop();
+			if (Parameters::print_tree) {
+				SliceTreeBiasSamp* st = (SliceTreeBiasSamp*) alg; 		
+				st->print();
+			}
 		}
 		
 		if(Parameters::compression_algorithm == "AL")

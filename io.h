@@ -60,6 +60,7 @@ class Parameters
 		static unsigned int max_radius;
 		static double rho;
 		static bool directed;
+ 		static bool print_tree;
 		
 		/*List of valid compression algorithms for checking*/
 		static std::vector < std::string > compression_algorithms;
