@@ -481,6 +481,7 @@ class Graph
 		unsigned short int** distance_matrix;
 		std::map<unsigned int, double> vertex_values;
 		std::map<unsigned int, std::string> vertex_names;
+		std::map<std::string,unsigned int> vertex_ids;
 		std::vector< std::vector< std::list<unsigned int >* >* > distance_str;
 		std::vector<unsigned int> sorted_vector; 
 		unsigned int graph_diameter;

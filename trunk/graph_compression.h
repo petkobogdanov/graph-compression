@@ -60,7 +60,7 @@ typedef struct STNode
 	
 	/*Error of the partition at this level of the tree*/
 	double error_partition;
-
+	
 	/*Error of the best cut i.e. for the center/radius defined*/
 	double error_best_cut;
 	

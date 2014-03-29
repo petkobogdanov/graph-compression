@@ -102,7 +102,6 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 	std::ifstream input_values_file(values_file_name.c_str(), std::ios::in);
 	std::string line_str;
 	std::vector< std:: string > line_vec;
-	std::map<std::string,unsigned int> vertex_ids;
 
 	if(! input_values_file.is_open())
 	{
@@ -196,7 +195,6 @@ void Graph::read_graph(const std::string& graph_file_name) throw (std::ios_base:
 {
 	std::string line_str;
 	std::vector< std:: string > line_vec;
-	std::map<std::string,unsigned int> vertex_ids;
 
 	std::ifstream input_graph_file(graph_file_name.c_str(), std::ios::in);
 
@@ -1272,7 +1270,6 @@ void Graph::read_partition_sizes(const std::string& input_file_name,
 {
 	std::ifstream input_file(input_file_name.c_str());
 	partition_sizes.reserve(size());
-	unsigned int i = 0;
 	std::vector< std:: string > line_vec;
 	std::string line_str;
 
@@ -1289,20 +1286,27 @@ void Graph::read_partition_sizes(const std::string& input_file_name,
 	{
 		line_vec = split(line_str,',');
 		
-		partition_sizes.at(i)->reserve(line_vec.size()-1);
+		partition_sizes.at(vertex_ids[line_vec[0]])->reserve(line_vec.size()-1);
 		
 		for(unsigned int j = 1; j < line_vec.size(); j++)
 		{
-			partition_sizes.at(i)->push_back(atoi(line_vec.at(j).c_str()));
+			partition_sizes.at(vertex_ids[line_vec[0]])->push_back(
+				atoi(line_vec.at(j).c_str()));
 		}
 
-		if(partition_sizes.at(i)->size() - 1 > graph_diameter)
+		if(partition_sizes.at(vertex_ids[line_vec[0]])->size() - 1 
+			> graph_diameter)
 		{
-			graph_diameter = partition_sizes.at(i)->size();
+			graph_diameter = partition_sizes.at(
+				vertex_ids[line_vec[0]])->size();
 		}
 
 		std::getline(input_file, line_str);
-		i++;
+	}
+
+	if(graph_diameter > max_radius)
+	{
+		graph_diameter = max_radius;
 	}
 	
 	input_file.close();

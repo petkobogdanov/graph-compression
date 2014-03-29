@@ -75,8 +75,13 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			graph->read_partition_sizes(Parameters::partition_sizes_file_name,
-				Parameters::max_radius);
+			if(Parameters::compression_algorithm == "ST" ||
+				Parameters::compression_algorithm == "STUS" ||
+				Parameters::compression_algorithm == "STBS")
+			{
+				graph->read_partition_sizes(Parameters::partition_sizes_file_name,
+					Parameters::max_radius);
+			}
 		}
 		
 		/*Performing GraphCompression*/
