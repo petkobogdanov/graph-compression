@@ -798,7 +798,7 @@ void SliceTreeSamp::upper_bound_error_reduction(std::vector<up_bound_t*>& upper_
 
 	for(unsigned int r = 0; r <= max_radius_slice; r++)
 	{
-		if(r < graph->max_distance(center))
+		if(r < graph->max_distance(partition.at(center)))
 		{
 			vertices_at_dist_r = graph->vertices_at_distance
 				(partition.at(center), r);
