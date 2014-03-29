@@ -281,6 +281,11 @@ Graph::~Graph()
 	{
 		delete adjacency_list[v];
 	}
+	
+	for(unsigned int v = 0; v < partition_sizes.size(); v++)
+	{
+		delete partition_sizes.at(v);
+	}
 
 	if(directed)
 	{
