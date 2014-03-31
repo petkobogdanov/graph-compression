@@ -91,7 +91,7 @@ typedef struct UpperBoundType
  * @return 
  * @throws
 **/
-void print_st_node(st_node_t* st_node, unsigned int depth);
+void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid, std::string type, Graph* graph);
 
 /**
  * Compares two slice tree nodes
