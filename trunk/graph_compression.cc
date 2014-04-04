@@ -992,6 +992,8 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 			st_node->partition, radius, 
 			st_node->in_partition, st_node->average);
 		
+//		printf("center = %d, radius = %d, upper bound = %lf, reduction = %lf\n", upper_bounds.at(s)->center, radius, upper_bounds.at(s)->value, e_r.first);
+		
 		if(e_r.first > opt_reduction)
 		{
 			opt_reduction = e_r.first;
@@ -1014,7 +1016,11 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 		{
 			delete *it;
 		}
+
+		delete upper_bounds.at(s);
 	}
+		
+//	printf("**center = %d, radius = %d, reduction = %lf\n", opt_center, opt_radius, opt_reduction);
 }
 
 /**

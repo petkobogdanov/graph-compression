@@ -271,7 +271,7 @@ int main(int argc, char** argv)
 		}
 
 		//Petko: Double freeing error commented temporarily
-		//delete graph;
+		delete graph;
 	}
 
 	delete exec_time_compression;
