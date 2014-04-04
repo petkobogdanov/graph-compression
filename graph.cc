@@ -296,11 +296,6 @@ Graph::~Graph()
 		}
 	}
 	
-	for(unsigned int v = 0; v < partition_sizes.size(); v++)
-	{
-		delete partition_sizes.at(v);
-	}
-
 	for(unsigned int v = 0; v < distance_str.size(); v++)
 	{
 		for(unsigned int d = 0; d < distance_str[v]->size(); d++)
