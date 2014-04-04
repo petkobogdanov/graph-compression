@@ -15,6 +15,6 @@ for((snp=0; snp<$num_snapshots; snp++))
 do
     for np in ${num_partitions[@]}
     do
-      ./graph_compression -g human_$snp.graph -v human_$snp.data -o human_$snp.bin -c ST -p $np -s human_$snp.sizes >> out_st_$snp\_$np.dat
+      ./graph_compression -g human_$snp.graph -v human_$snp.data -o human_$snp.bin -c ST -p $np -s human_$snp.sizes -i >> out_st_$snp\_$np.dat
     done
 done
