@@ -308,6 +308,7 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * @throws
 		**/
 		void extend_tree();
+		void extend_st_node(st_node_t* st_node, Graph* graph);
 
 		/**
 		 * Computes the sse of a partition

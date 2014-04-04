@@ -1551,7 +1551,7 @@ SliceTree::~SliceTree()
  * @return
  * @throws
 **/
-void extend_st_node(st_node_t* st_node, Graph* graph)
+void SliceTree::extend_st_node(st_node_t* st_node, Graph* graph)
 {
 	bool extend_left = true;
 	bool extend_right = true;
@@ -1617,6 +1617,9 @@ void extend_st_node(st_node_t* st_node, Graph* graph)
 
 	st_node->right->average = st_node->average 
 		+ (double) st_node->difference / st_node->right->partition.size();
+	
+	st_node->left->error_partition = sse_partition(st_node->left->partition);
+	st_node->right->error_partition = sse_partition(st_node->right->partition);
 	
 	if(extend_left)
 	{
@@ -2252,7 +2255,6 @@ void SliceTree::set_compressed_values()
 	
 	clear_partitions();
 	extend_tree();
-//	print();
 	set_compressed_values_st_node(tree, values);
 }
 
