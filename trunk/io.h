@@ -61,6 +61,7 @@ class Parameters
 		static double rho;
 		static bool directed;
  		static bool print_tree;
+		static bool exhaustive_split;
 		
 		/*List of valid compression algorithms for checking*/
 		static std::vector < std::string > compression_algorithms;

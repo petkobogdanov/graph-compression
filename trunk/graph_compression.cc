@@ -1433,12 +1433,23 @@ double SliceTree::min_error_bounds(std::list< std::pair<unsigned int,
 */
 
 /**
- * Runs the slice tree compression. 
- * @param 
+ * Wrapper for compress heuristics
+ * @param
  * @return 
- * @throws 
+ * @throws
 **/
-void SliceTree::compress(const unsigned int budget)
+void SliceTree::compress(const unsigned int budget){
+	if (exhaustive_split) compressExhaustive(budget);
+	else compressGreedy(budget);
+}
+
+/**
+ * Runs the slice tree compression. All partitions probed
+ * @param
+ * @return 
+ * @throws
+**/
+void SliceTree::compressExhaustive(const unsigned int budget)
 {
 	budget_compression = budget;
 	tree = new st_node_t;
@@ -1510,6 +1521,103 @@ void SliceTree::compress(const unsigned int budget)
 	}
 	
 	compute_difference_coefficients();
+}
+
+
+/**
+ * Runs the slice tree compression. Only the highest error slice is
+ * probed for all possible cuts 
+ * @param
+ * @return 
+ * @throws
+**/
+void SliceTree::compressGreedy(const unsigned int budget)
+{
+	budget_compression = budget;
+	tree = new st_node_t;
+	n_partitions = num_partitions(budget_compression,
+		graph->size(), graph->diameter());
+	
+	/*Setting the initial partition, which contains all the vertices
+	* in the graph*/	
+	tree->partition.reserve(graph->size());
+	tree->in_partition.reserve(graph->size());
+
+	for(unsigned int v = 0; v < graph->size(); v++)
+	{
+		tree->partition.push_back(v);
+		tree->in_partition.push_back(true);
+	}
+	
+	tree->size = tree->partition.size();
+	tree->center = 0;
+	tree->radius = UINT_MAX;
+	tree->difference = 0;
+	tree->left = NULL;
+	tree->right = NULL;
+	tree->error_partition = sse_partition(tree->partition);
+	tree->average = average_partition(tree->partition);
+	tree->diameter = graph->diameter();
+	
+	/*The initial global error is the error of the initial partition*/
+	global_error = tree->error_partition;
+	
+	/*Candidate cuts is a min-heap, we use it to find the next best cut*/
+	std::vector<st_node_t*> candidate_cuts;
+	candidate_cuts.reserve(n_partitions);
+	
+
+	unsigned int n_part = 1;
+	st_node_t* part;
+	st_node_t* toCut = getMaxSSEPartiton(tree);
+         
+
+	while(n_part < n_partitions && toCut!=NULL)
+	{
+        /*Computing the best cut for the initial partition*/
+		optimal_cut(toCut);
+		candidate_cuts.push_back(toCut);
+		std::push_heap(candidate_cuts.begin(), candidate_cuts.end(), CompareCuts());
+	
+		part = candidate_cuts.front();
+		std::pop_heap (candidate_cuts.begin(), candidate_cuts.end());
+		candidate_cuts.pop_back();
+		
+		/*Performing the best cut, in case the cut is trivial 
+		(i.e. it generates an empty partition) the split is not performed*/
+		if(split_partition(part))
+		{
+			/*Processing new partitions*/
+			
+			if(n_part + 1 < n_partitions)
+			{
+				// get max sse partition
+				toCut = getMaxSSEPartiton(tree);
+			}
+
+			n_part = n_part + 1;
+		}
+	}
+	
+	compute_difference_coefficients();
+}
+
+/**
+ * Find partition of max SSE
+ * @param
+ * @return 
+ * @throws
+**/
+st_node_t* SliceTree::getMaxSSEPartiton(st_node_t* root){
+	if (root->left==NULL && root->right==NULL) { 
+		return root;
+	} else {
+		st_node_t* maxErrHere = getMaxSSEPartiton(root->left);
+		st_node_t* maxErrRight = getMaxSSEPartiton(root->right);
+    	if (maxErrRight->error_partition > maxErrHere->error_partition) 
+			maxErrHere = maxErrRight;
+		return maxErrHere;
+	}
 }
 
 /**

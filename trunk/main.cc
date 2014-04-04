@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 			
 			if(Parameters::budget > 0)
 			{
-				alg = new SliceTree(*graph, Parameters::max_radius); 
+				alg = new SliceTree(*graph, Parameters::max_radius, Parameters::exhaustive_split); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
 			}
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
-				alg = new SliceTree(*graph, Parameters::max_radius); 
+				alg = new SliceTree(*graph, Parameters::max_radius, Parameters::exhaustive_split); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 			
 			if(Parameters::budget > 0)
 			{
-				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
+				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split, 
 					Parameters::delta, Parameters::num_samples,
 					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
-				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
+				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split,
 					Parameters::delta, Parameters::num_samples,
 					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 			
 			if(Parameters::budget > 0)
 			{
-				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
+				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split,
 					Parameters::delta, Parameters::num_samples,
 					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				
-				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, 
+				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split, 
 					Parameters::delta, Parameters::num_samples, 
 					Parameters::rho);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
