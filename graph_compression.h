@@ -213,13 +213,15 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * Constructor. 
 		 * @param graph graph 
 		 * @param max_radius maximum radius for slice tree
+		 * @param exhaustive_split consider all splits in all partitions if set
 		 * @return 
 		 * @throws 
 		**/
-		SliceTree(Graph& graph, const unsigned int _max_radius):
+		SliceTree(Graph& graph, const unsigned int _max_radius, const bool _exhaustive_split):
 			GraphCompressionAlgorithm(graph)
 		{
 			max_radius = _max_radius;
+			exhaustive_split = _exhaustive_split;
 		}
 
 		/**
@@ -241,12 +243,29 @@ class SliceTree: public GraphCompressionAlgorithm
 		void decompress();
 
 		/**
-		 * Runs the slice tree compression.
+		 * Wrapper for compress heuristics
 		 * @param
 		 * @return 
 		 * @throws
 		**/
 		void compress(const unsigned int budget);
+		
+		/**
+		 * Runs the slice tree compression. All partitions probed
+		 * @param
+		 * @return 
+		 * @throws
+		**/
+		void compressExhaustive(const unsigned int budget); 
+
+		/**
+		 * Runs the slice tree compression. Only the highest error slice is
+ 		 * probed for all possible cuts 
+		 * @param
+		 * @return 
+		 * @throws
+		**/
+		void compressGreedy(const unsigned int budget);
 
 		/**
 		 * Destructor
@@ -300,6 +319,7 @@ class SliceTree: public GraphCompressionAlgorithm
 		unsigned int n_partitions;
 		double global_error; //Keeps the final sse
 		unsigned int max_radius;
+		bool exhaustive_split;
 
 		/**
 		 * Extends the slice tree recovered from a serialized file
@@ -317,6 +337,14 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * @throws
 		**/
 		const double sse_partition(const std::vector<unsigned int>& partition) const;
+		
+		/**
+		 * Find partition of max SSE
+		 * @param
+		 * @return 
+		 * @throws
+		**/
+		st_node_t* getMaxSSEPartiton(st_node_t* root);
 		
 		/**
 		 * Identifies the optimal cut (center/radius) for the
@@ -417,16 +445,17 @@ class SliceTreeSamp: public SliceTree
 		 * Constructor. 
 		 * @param graph graph 
 		 * @param max_radius maximum radius for slice tree
+		 * @param exhaustive_split consider all splits in all partitions if set		
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
 		 * @param num_samples number of samples
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeSamp(Graph& _graph, const unsigned int max_radius, 
+		SliceTreeSamp(Graph& _graph, const unsigned int max_radius, const bool _exhaustive_split, 
 			const double _delta, const unsigned int _num_samples,
 			const double _rho):
-			SliceTree(_graph, max_radius)
+			SliceTree(_graph, max_radius, _exhaustive_split)
 		{
 			delta = _delta;
 			theta = compute_theta();
@@ -702,16 +731,17 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 		 * Constructor. Does nothing. 
 		 * @param graph graph 
 		 * @param max_radius maximum radius for slice tree
+		 * @param exhaustive_split consider all splits in all partitions if set
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
 		 * @param num_samples number of samples
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeBiasSamp(Graph& _graph, const unsigned int _max_radius, 
+		SliceTreeBiasSamp(Graph& _graph, const unsigned int _max_radius, const bool _exhaustive_split, 
 			const double _delta, const unsigned int _num_samples, 
 			const double _rho):
-			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples,
+			SliceTreeSamp(_graph, _max_radius, _exhaustive_split, _delta, _num_samples,
 				_rho)
 		{
 			graph->set_biased_sample(_num_samples);
@@ -753,16 +783,17 @@ class SliceTreeUnifSamp: public SliceTreeSamp
 		 * Constructor. Does nothing. 
 		 * @param graph graph 
 		 * @param max_radius maximum radius for slice tree
+		 * @param exhaustive_split consider all splits in all partitions if set
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
 		 * @param num_samples number of samples
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeUnifSamp(Graph& _graph, const unsigned int _max_radius, 
+		SliceTreeUnifSamp(Graph& _graph, const unsigned int _max_radius, const bool _exhaustive_split, 
 			const double _delta, const unsigned int _num_samples,
 			const double _rho):
-			SliceTreeSamp(_graph, _max_radius, _delta, _num_samples,
+			SliceTreeSamp(_graph, _max_radius, _exhaustive_split, _delta, _num_samples,
 			_rho)
 		{
 			graph->set_uniform_sample(_num_samples);
