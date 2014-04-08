@@ -328,6 +328,7 @@ void SliceTree::optimal_cut(st_node_t* st_node) const
 			best_radius = radius;
 			min_error = error;
 		}
+		if (c%100==0) std::cout<< "DEBUG: Done with " << c << " slices\n"; 
 	}
 
 	st_node->center = best_center;
@@ -936,6 +937,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 			* graph->value(st_node->partition.at(c));
 
 		num_samples_part += graph->count(st_node->partition.at(c));
+		//if (c%100000==0) std::cout<< "DEBUG: Done with " << c << " slices (Suming weights) \n";
 	}
 
 	/*Computing upper and lower bounds on the error reduction for
@@ -952,6 +954,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 			total_slices += upper_bounds.back()->bounds.size();
 			num_pruned += upper_bounds.back()->bounds.size();
 		}
+		//if (c%100000==0) std::cout<< "DEBUG: Done with " << c << " slices (Estimating Reduction) \n";
 	}
 
 	/*Sorts the slices in non-increasing order of error reduction*/
@@ -1003,6 +1006,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node) const
 		}
 
 		s = s + 1;
+		//if (s%10000==0) std::cout<< "DEBUG: Done expanding " << s << " slices (Suming weights) \n";
 	}
 
 	st_node->center = opt_center;
@@ -1439,8 +1443,11 @@ double SliceTree::min_error_bounds(std::list< std::pair<unsigned int,
  * @throws
 **/
 void SliceTree::compress(const unsigned int budget){
-	if (exhaustive_split) compressExhaustive(budget);
-	else compressGreedy(budget);
+	if (exhaustive_split) {
+		compressExhaustive(budget);
+	} else {
+		compressGreedy(budget);
+	}
 }
 
 /**
@@ -1451,6 +1458,9 @@ void SliceTree::compress(const unsigned int budget){
 **/
 void SliceTree::compressExhaustive(const unsigned int budget)
 {
+	std::cout<<"Running exhaustive ST\n";
+	ExecTime* t = new ExecTime();
+	t->start();	
 	budget_compression = budget;
 	tree = new st_node_t;
 	n_partitions = num_partitions(budget_compression,
@@ -1492,7 +1502,7 @@ void SliceTree::compressExhaustive(const unsigned int budget)
 
 	unsigned int n_part = 1;
 	st_node_t* part;
-
+	
 	while(n_part < n_partitions && candidate_cuts.size() > 0)
 	{
 		part = candidate_cuts.front();
@@ -1515,9 +1525,14 @@ void SliceTree::compressExhaustive(const unsigned int budget)
 
 				std::push_heap(candidate_cuts.begin(), candidate_cuts.end(), CompareCuts());
 			}
-
+			std::cout << "PRINTING TREE " << n_part << "\n";
+			print();
 			n_part = n_part + 1;
-		}
+		} 
+		t->stop();
+		std::cout<< "DEBUG: Done with " << n_part << "[" << t->get_seconds() << "s]\n";
+		t->start(); 
+		
 	}
 	
 	compute_difference_coefficients();
@@ -1533,6 +1548,9 @@ void SliceTree::compressExhaustive(const unsigned int budget)
 **/
 void SliceTree::compressGreedy(const unsigned int budget)
 {
+	std::cout<<"Running greedy ST\n";
+	ExecTime* t = new ExecTime();
+	t->start();	
 	budget_compression = budget;
 	tree = new st_node_t;
 	n_partitions = num_partitions(budget_compression,
@@ -1594,9 +1612,13 @@ void SliceTree::compressGreedy(const unsigned int budget)
 				// get max sse partition
 				toCut = getMaxSSEPartiton(tree);
 			}
-
+			std::cout << "PRINTING TREE " << n_part << "\n";
+			print();
 			n_part = n_part + 1;
 		}
+		t->stop();
+		std::cout<< "DEBUG: Done with " << n_part << "[" << t->get_seconds() << "s]\n";
+		t->start(); 
 	}
 	
 	compute_difference_coefficients();
@@ -2264,15 +2286,15 @@ const double SliceTree::sse_partition(const std::vector<unsigned int>& partition
  * @return
  * @throws
 **/
-void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid, std::string type)
+void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid, std::string type, Graph* graph)
 {
 	std::stringstream mid;
 	if(st_node->left == NULL && st_node->right == NULL){
 		mid<<pid<<type;
 	} else {
-		mid<<"("<<st_node->center<<","<<st_node->radius<<","<<depth<<")" <<type;
+		mid<<"("<<graph->name(st_node->center)<<","<<st_node->radius<<","<<depth<<")" <<type;
 	}	
-	std::cout <<pid << " " << mid.str() << " center=" << st_node->center << " radius=" 
+	std::cout <<pid << " " << mid.str() << " center=" << graph->name(st_node->center) << " radius=" 
 		<< st_node->radius << " error_p=" << st_node->error_partition << " mean=" << st_node->average;
 	
 	if(st_node->left != NULL)
@@ -2283,7 +2305,7 @@ void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid, std:
 			std::cout << " ";
 		}
 		
-		print_st_node(st_node->left, depth+1, mid.str(), "i");
+		print_st_node(st_node->left, depth+1, mid.str(), "i", graph);
 	}
 	
 	if(st_node->right != NULL)
@@ -2294,7 +2316,7 @@ void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid, std:
 			std::cout << " ";
 		}
 	
-		print_st_node(st_node->right, depth+1, mid.str(), "o");
+		print_st_node(st_node->right, depth+1, mid.str(), "o", graph);
 	}
 
 	if(st_node->left == NULL && st_node->right == NULL)
@@ -2302,7 +2324,7 @@ void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid, std:
 		std::cout<< " " ;
 		for(unsigned int v = 0; v < st_node->partition.size(); v++)
 		{
-			std::cout << st_node->partition[v] << " ";
+			std::cout << graph->name(st_node->partition[v]) << " ";
 		}
 
 		std::cout << std::endl;
@@ -2317,7 +2339,7 @@ void print_st_node(st_node_t* st_node, unsigned int depth, std::string pid, std:
 **/
 void SliceTree::print() const
 {
-	print_st_node(tree, 0, "(root)", "");
+	print_st_node(tree, 0, "(root)", "", graph);
 }
 
 /**
