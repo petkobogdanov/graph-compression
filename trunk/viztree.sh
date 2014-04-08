@@ -16,6 +16,11 @@ sed -e 's/^[ ]*//g' $TREENAME.tree | gawk -F " " -v anfn=$NAMES '
       }
     }
   } 
+  $0~/PRINTING TREE/ {
+    # a new tree dump -> cleanup
+    for (n in nodes) delete nodes[n];
+    for (e in edges) delete edges[e];
+  }
   $1~/\(/ {
     if ($1 !~ /root/) edges[ "\"" $1 "\"->\"" $2 "\""] = "";
     
@@ -24,13 +29,13 @@ sed -e 's/^[ ]*//g' $TREENAME.tree | gawk -F " " -v anfn=$NAMES '
       split($5, es, "=");
       nodes["\"" $2 "\""] = "[ label=\"" mus[2] "(E=" es[2] ")";
       nodes["\"" $2 "\""] = nodes["\"" $2 "\""] ":"
-      
       if(anfn!="") for (i=7; i<= 20; i++) nodes["\"" $2 "\""] = nodes["\"" $2 "\""] "\\n" anames[$i];
       else for (i=7; i<= 20; i++) nodes["\"" $2 "\""] = nodes["\"" $2 "\""] "\\n" $i;
       if (NF>20) nodes["\"" $2 "\""] = nodes["\"" $2 "\""] "..." 
       nodes["\"" $2 "\""] = nodes["\"" $2 "\""] "\" shape=\"box\"]"
     } else {
       split($3, cs, "=");
+      #print("the mapping of -" cs[2] "- is " anames[cs[2]]);
       split($4, rs, "=");
       split($5, es, "=");
       split($6, mus, "=");
