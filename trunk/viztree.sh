@@ -1,10 +1,12 @@
 #!/bin/bash
 
 TREENAME=$1
-NAMES=$2
+DATA=$2
+NAMES=$3
 
-sed -e 's/^[ ]*//g' $TREENAME.tree | gawk -F " " -v anfn=$NAMES '
+sed -e 's/^[ ]*//g' $TREENAME.tree | gawk -F " " -v anfn=$NAMES -d dfn=$DATA '
   BEGIN{
+    PROCINFO["sorted_in"] = "@val_num_desc"
     print "digraph a {" 
     if (anfn!="") {
       # parse the author topconferences
@@ -14,6 +16,9 @@ sed -e 's/^[ ]*//g' $TREENAME.tree | gawk -F " " -v anfn=$NAMES '
         for(i=4; i<=length(sline); i++) anames[sline[1]] = anames[sline[1]] ";" sline[i];
         anames[sline[1]] = anames[sline[1]] "]";
       }
+      # parse author counts 
+       
+      
     }
   } 
   $0~/PRINTING TREE/ {
