@@ -308,7 +308,7 @@ def main(argv=None):
 	    if opt in ('-c', '--reduction'):
 	        sse_reduction = float(arg)
 	    if opt in ('-h', '--help'):
-	        print "python graph_generator.py [-o <output_file>] [-v <num-vertices>] [-e <num-edges>] [-p <num-partitions] [-r <radius>] [-m <max-average>] [-c <reduction>]"
+	        print "python graph_generator.py [-o <output_file>] [-v <num-vertices>] [-e <num-edges>] [-p <num-partitions] [-r <radius>] [-s <sse>] [-c <reduction>]"
 	        sys.exit()
        
         g = Graph(num_vertices, num_edges, num_partitions, radius, max_average, sse, sse_reduction)
