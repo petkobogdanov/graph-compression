@@ -16,6 +16,7 @@ do
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
+        postfix=$postfix\_$r
         echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c STBS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_fast_sampling -d $delta_fast_sampling -r $rho_fast_sampling -x > out_stbs_fast_$postfix.txt"
         $graph_compression -g $prefix.graph -v $prefix.data -o output -c STBS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_fast_sampling -d $delta_fast_sampling -r $rho_fast_sampling -x > out_stbs_fast_$postfix.txt
         echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c STBS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_slow_sampling -d $delta_slow_sampling -r $rho_slow_sampling -x > out_stbs_slow_$postfix.txt"
