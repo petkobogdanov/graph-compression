@@ -9,8 +9,8 @@ for p in ${param_num_partitions[@]}
 do
   for((g=1; g<=$num_graphs; g++))
   do
-    prefix="$graph_name_prefix\_$g\_$p"
-    postfix="$g\_$p"
+    prefix=$graph_name_prefix\_$g\_$p
+    postfix=$g\_$p
     echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c ST -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_st_$postfix.txt"
     $graph_compression -g $prefix.graph -v $prefix.data -o output -c ST -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_st_$postfix.txt
     
