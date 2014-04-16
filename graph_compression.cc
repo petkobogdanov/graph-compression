@@ -963,6 +963,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node)
 	double sum_weights;
 	double sum_weighted_values;
 	unsigned int total_samples = 0;
+	unsigned int _total_slices = 0;
 	unsigned int round = 0;
 	unsigned int remaining_centers = st_node->partition.size();
 	double opt_reduction = -1*std::numeric_limits<double>::max();
@@ -1001,7 +1002,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node)
 					sum_weighted_values, sum_weights,
 					total_samples, st_node->error_partition);
 				upper_bounds.push_back(up_bound);
-				total_slices += upper_bounds.back()->bounds.size();
+				_total_slices += upper_bounds.back()->bounds.size();
 //				printf("center:%d,estimate = %lf\n", c, up_bound->estimate);
 //				printf("center:%d,upper_bound:%lf,radius:%d\n", c, up_bound->bound, up_bound->radius);
 				if(up_bound->estimate >= best_estimate)
@@ -1011,7 +1012,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node)
 				}
 			}
 
-			_num_pruned = total_slices;
+			_num_pruned = _total_slices;
 		}
 		else
 		{
@@ -1165,7 +1166,8 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node)
 	st_node->center = opt_center;
 	st_node->radius = opt_radius;
 	st_node->error_best_cut = global_error - opt_reduction;
-	num_pruned+= _num_pruned;
+	num_pruned += _num_pruned;
+	total_slices += _total_slices;
 	
 	//printf("pruning rate = %lf\n", double(num_pruned)/total_slices);
 		
