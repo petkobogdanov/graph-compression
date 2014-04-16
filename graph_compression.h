@@ -80,7 +80,8 @@ typedef struct UpperBoundType
 {
 	unsigned int center;
 	unsigned int radius;
-	double value;
+	double bound;
+	double estimate;
 	std::list< std::pair<unsigned int, double>* > bounds;
 }up_bound_t;
 
@@ -103,15 +104,6 @@ class CompareCuts
 		bool operator()(const st_node_t* n_one, const st_node_t* n_two) const
 		{
 			return n_one->error_best_cut > n_two->error_best_cut;
-		}
-};
-
-class CompareUpperBounds
-{
-	public:
-		bool operator()(const up_bound_t* u_one, const up_bound_t* u_two) const
-		{
-			return u_one->value > u_two->value;
 		}
 };
 
@@ -353,7 +345,7 @@ class SliceTree: public GraphCompressionAlgorithm
 		 * @return 
 		 * @throws
 		**/
-		virtual void optimal_cut(st_node_t* st_node) const;
+		virtual void optimal_cut(st_node_t* st_node);
 		
 		/**
 		 * Identifies the optimal radius for a given center and partition
@@ -383,7 +375,7 @@ class SliceTree: public GraphCompressionAlgorithm
 		 *	false, otherwise
 		 * @throws
 		**/
-		const bool split_partition(st_node_t* st_node);
+		virtual const bool split_partition(st_node_t* st_node);
 
 		/**
 		  * Computes the difference coefficients for a wavelet-like 
@@ -448,19 +440,22 @@ class SliceTreeSamp: public SliceTree
 		 * @param exhaustive_split consider all splits in all partitions if set		
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
-		 * @param num_samples number of samples
+		 * @param sampling_rate sampling rate
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeSamp(Graph& _graph, const unsigned int max_radius, const bool _exhaustive_split, 
-			const double _delta, const unsigned int _num_samples,
+		SliceTreeSamp(Graph& _graph, const unsigned int max_radius, 
+			const bool _exhaustive_split, 
+			const double _delta, 
+			const double _sampling_rate,
 			const double _rho):
 			SliceTree(_graph, max_radius, _exhaustive_split)
 		{
 			delta = _delta;
 			theta = compute_theta();
-			num_samples = _num_samples;
+			sampling_rate = _sampling_rate;
 			rho = _rho;
+			_graph.start_distance_str_slice_tree_sample();
 			
 			/*Initializing data structures that are used to compute
 			* upper and lower bounds on the sizes of partitions*/
@@ -476,7 +471,6 @@ class SliceTreeSamp: public SliceTree
 				dist_center_part.push_back(UINT_MAX);
 				radius_part.push_back(UINT_MAX);
 			}
-			
 		}
 		
 		inline static unsigned int count_bound_one()
@@ -516,7 +510,7 @@ class SliceTreeSamp: public SliceTree
 	protected:
 		double delta;
 		double theta;
-		unsigned int num_samples;
+		double sampling_rate;
 		double rho;
 		static unsigned int num_pruned_bound_1;
 		static unsigned int num_pruned_bound_2;
@@ -542,7 +536,8 @@ class SliceTreeSamp: public SliceTree
 		 * @return
 		 * @throws
 		**/
-		void optimal_cut(st_node_t* st_node) const;
+		void optimal_cut(st_node_t* st_node);
+		void optimal_cut_exact(st_node_t* st_node) const;
 		
 		/**
 		 * Computes theta, which is the range in which all values are.
@@ -566,7 +561,7 @@ class SliceTreeSamp: public SliceTree
 		 * @throws
 		 **/
 		void upper_bound_error_reduction(
-			std::vector<up_bound_t*>& upper_bounds,
+			up_bound_t* up_bound,
 			const unsigned int center,
 		  	const std::vector<unsigned int>& partition,
 		        const unsigned int diameter, 
@@ -574,7 +569,8 @@ class SliceTreeSamp: public SliceTree
 		        const double average,
 			const double sum_weighted_values,
 			const double sum_weights,
-			const unsigned int num_samples_part) const;
+			const unsigned int total_samples,
+			const double sse_partition) const;
 		
 		/**
 		 * Computes a lower bound on the size of a partition. Computing the actual
@@ -645,13 +641,8 @@ class SliceTreeSamp: public SliceTree
 		 * @throws 
 		 * @return upper bound.
 		**/
-		double upper_bound_error_reduction_mean_estimate_out(
-			const unsigned int center, const unsigned int radius,
-			const std::vector<unsigned int>& partition,
-			const double average, const double weighted_mean,
-			const unsigned int num_samples_part) const;
-		
-		double lower_bound_error_reduction_mean_estimate_out(
+		std::pair<double, double>
+		upper_bound_error_reduction_mean_estimate_out(
 			const unsigned int center, const unsigned int radius,
 			const std::vector<unsigned int>& partition,
 			const double average, const double weighted_mean,
@@ -685,13 +676,8 @@ class SliceTreeSamp: public SliceTree
 		  * @throws 
 		  * @return upper bound.
 		 **/
-		double upper_bound_error_reduction_mean_estimate_in(
-			const unsigned int center, const unsigned int radius,
-		  	const std::vector<unsigned int>& partition,
-		   	const double average, const double weighted_mean, 
-			const unsigned int num_samples_part) const;
-		
-		double lower_bound_error_reduction_mean_estimate_in(
+		std::pair<double, double>
+		upper_bound_error_reduction_mean_estimate_in(
 			const unsigned int center, const unsigned int radius,
 		  	const std::vector<unsigned int>& partition,
 		   	const double average, const double weighted_mean, 
@@ -710,12 +696,18 @@ class SliceTreeSamp: public SliceTree
 		 * @throws 
 		 * @return upper bound.
 		**/
-		virtual double upper_bound_error_reduction_num_samples
-			(const unsigned int center, const unsigned int radius,
+		virtual std::pair<double, double>
+		upper_bound_error_reduction_num_samples
+			(const unsigned int center, 
+			const unsigned int radius,
 			const std::vector<unsigned int>& partition,
-			const unsigned int num_samples_part) const
+			const unsigned int num_samples_part,
+			const unsigned int total_samples) const
 		{
-			return std::numeric_limits<double>::max();
+			std::pair<double,double> res;
+			res.first = std::numeric_limits<double>::max();
+			res.second = 0;
+			return res;
 		}
 
 };
@@ -734,20 +726,19 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 		 * @param exhaustive_split consider all splits in all partitions if set
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
-		 * @param num_samples number of samples
+		 * @param sampling_rate sampling rate
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeBiasSamp(Graph& _graph, const unsigned int _max_radius, const bool _exhaustive_split, 
-			const double _delta, const unsigned int _num_samples, 
+		SliceTreeBiasSamp(Graph& _graph, const unsigned int _max_radius, 
+			const bool _exhaustive_split, 
+			const double _delta, 
+			const double _sampling_rate, 
 			const double _rho):
-			SliceTreeSamp(_graph, _max_radius, _exhaustive_split, _delta, _num_samples,
-				_rho)
+			SliceTreeSamp(_graph, _max_radius, _exhaustive_split, 
+			_delta, _sampling_rate, _rho)
 		{
-			graph->set_biased_sample(_num_samples);
-			
-			/*Building distance structure for the sample*/
-			graph->build_distance_str_slice_tree_sample(max_radius);
+			graph->set_biased_sampling();
 		}
 		
 		/**
@@ -770,36 +761,35 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 		 * @throws 
 		 * @return upper bound.
 		**/
-		double upper_bound_error_reduction_num_samples
+		std::pair<double, double>
+		upper_bound_error_reduction_num_samples
 			(const unsigned int center, const unsigned int radius,
 			const std::vector<unsigned int>& partition,
-			const unsigned int num_samples_part) const;
+			const unsigned int num_samples_part,
+			const unsigned int total_samples) const;
 };
 
 class SliceTreeUnifSamp: public SliceTreeSamp
 {
 	public:
 		/**
-		 * Constructor. Does nothing. 
 		 * @param graph graph 
 		 * @param max_radius maximum radius for slice tree
 		 * @param exhaustive_split consider all splits in all partitions if set
 		 * @param delta probability for bounds in error reduction estimates
 		 * for slices
-		 * @param num_samples number of samples
+		 * @param sampling_rate sampling_rate
 		 * @return 
 		 * @throws 
 		**/
-		SliceTreeUnifSamp(Graph& _graph, const unsigned int _max_radius, const bool _exhaustive_split, 
-			const double _delta, const unsigned int _num_samples,
+		SliceTreeUnifSamp(Graph& _graph, const unsigned int _max_radius, 
+			const bool _exhaustive_split, 
+			const double _delta, const double _sampling_rate,
 			const double _rho):
-			SliceTreeSamp(_graph, _max_radius, _exhaustive_split, _delta, _num_samples,
-			_rho)
+			SliceTreeSamp(_graph, _max_radius, _exhaustive_split, 
+			_delta, _sampling_rate,	_rho)
 		{
-			graph->set_uniform_sample(_num_samples);
-			
-			/*Building distance structure for the sample*/
-			graph->build_distance_str_slice_tree_sample(max_radius);
+			graph->set_uniform_sampling();
 		}
 
 		/**
@@ -823,10 +813,12 @@ class SliceTreeUnifSamp: public SliceTreeSamp
 		 * @throws 
 		 * @return upper bound.
 		**/
-		double upper_bound_error_reduction_num_samples
+		std::pair<double, double>
+			upper_bound_error_reduction_num_samples
 			(const unsigned int center, const unsigned int radius,
 			const std::vector<unsigned int>& partition,
-			const unsigned int num_samples_part) const;
+			const unsigned int num_samples_part,
+			const unsigned int total_samples) const;
 };
 
 /**
