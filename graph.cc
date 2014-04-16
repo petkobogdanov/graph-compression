@@ -25,6 +25,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cmath>
 #include <pthread.h>
 #include <stdio.h>
+#include <limits>
+#include <cfloat>
+
 
 /*my includes*/
 #include "graph.h"
@@ -45,7 +48,6 @@ Graph::Graph(const std::string& graph_file_name, const std::string& values_file_
 	distance_matrix = NULL;
 	biased_sampling = false;
 	uniform_sampling = false;
-	num_samples = 0;
 	sum_values = 0;
 	sum_weights = 0;
 }
@@ -64,7 +66,6 @@ Graph::Graph(const std::string& graph_file_name) throw (std::ios_base::failure)
 	distance_matrix = NULL;
 	biased_sampling = false;
 	uniform_sampling = false;
-	num_samples = 0;
 	sum_values = 0;
 	sum_weights = 0;
 }
@@ -109,6 +110,9 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 		return;
 	}
 	
+	unsigned int num_vertices = count_vertices(values_file_name);
+	vertex_values.reserve(num_vertices);
+	
 	/*Reading values from the graph*/
 	std::getline(input_values_file, line_str);
 	std::string vertex_name;
@@ -121,7 +125,7 @@ void Graph::read_graph(const std::string& graph_file_name, const std::string& va
 		vertex_name = line_vec[0];
 		vertex_value = atof(line_vec[1].c_str());
 		vertex_ids[vertex_name] = ID;
-		vertex_values[ID] = vertex_value;
+		vertex_values.push_back(vertex_value);
 		vertex_names[ID] = vertex_name;
 
 		std::getline(input_values_file, line_str);
@@ -295,7 +299,12 @@ Graph::~Graph()
  			delete back_adjacency_list[v];
 		}
 	}
-	
+
+	free_distance_str();
+}
+
+void Graph::free_distance_str()
+{
 	for(unsigned int v = 0; v < distance_str.size(); v++)
 	{
 		for(unsigned int d = 0; d < distance_str[v]->size(); d++)
@@ -303,8 +312,11 @@ Graph::~Graph()
 			delete distance_str[v]->at(d);
 		}
 
+		distance_str[v]->clear();
 		delete distance_str[v];
 	}
+
+	distance_str.clear();
 }
 
 /**
@@ -520,9 +532,9 @@ void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 	    
 	std::vector<unsigned int> distances;
 	distances.reserve(num_vertices);
-
-	graph_diameter = max_radius;
 	
+	graph_diameter = max_radius;
+
 	for(unsigned int v = 0; v < num_vertices; v++)
 	{
 		distances.push_back(max_radius+1);
@@ -602,6 +614,103 @@ void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 			}
 		}
 	}
+}
+
+void Graph::start_distance_str_slice_tree_sample()
+{
+	distances.reserve(size());
+	
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		distances.push_back(0);
+		distance_str.push_back(new std::vector< std::list<unsigned int >* >);
+	}
+}
+
+void Graph::build_distance_str_slice_tree_sample
+	(const unsigned int max_radius, 
+	std::vector<unsigned int>& partition)
+{
+	std::queue<unsigned int> queue;
+	unsigned int u;
+	unsigned int z;
+	unsigned int max_distance;
+	std::vector< std::list<unsigned int>* >* back_adj_list;
+
+	/*In case the graph is directed, BFS from the
+	samples to every node must use backward edges*/
+	if(directed)
+	{
+		back_adj_list = &back_adjacency_list;
+	}
+	else
+	{
+		back_adj_list = &adjacency_list;
+	}
+	
+	for (std::list<unsigned int>::iterator v = samples.begin(); 
+		v != samples.end(); ++v)
+	{
+		max_distance = 0;
+
+		for(u = 0; u < size(); u++)
+		{
+			distances[u] = UINT_MAX;
+		}
+
+		/*Distances are computed using BFS*/
+		distances[*v] = 0;
+		queue.push(*v);
+		
+		while(! queue.empty())
+		{
+			u = queue.front();
+			queue.pop();
+			
+			for (std::list<unsigned int>::iterator it = back_adj_list->at(u)->begin(); 
+				it != back_adj_list->at(u)->end(); ++it)
+			{
+				z = *it;
+
+				if(distances[z] > distances[u] + 1 &&
+					distances[u] + 1 <= max_radius)
+				{
+					distances[z] = distances[u] + 1;
+					queue.push(z);
+				}
+			}
+		}
+		
+		for(u = 0; u < partition.size(); u++)
+		{
+			if(distances[partition.at(u)] > max_distance &&
+				distances[partition.at(u)] <= max_radius &&
+				distances[partition.at(u)] < UINT_MAX)
+			{
+				max_distance = distances[partition.at(u)];
+			}
+		}
+
+		for(u = 0; u < partition.size(); u++)
+		{
+			if(distances[partition.at(u)] <= max_distance &&
+				distances[partition.at(u)] <= max_radius &&
+				distances[partition.at(u)] < UINT_MAX)
+			{
+				while(distance_str[partition.at(u)]->size() 
+					<= distances[partition.at(u)])
+				{
+					distance_str[partition.at(u)]->push_back
+						(new std::list<unsigned int>);
+				}
+	
+				distance_str[partition.at(u)]->at
+					(distances[partition.at(u)])->push_back(*v);
+			}
+		}
+	}
+
+//	print();
 }
 
 /**
@@ -948,75 +1057,180 @@ double random_double()
  * Selects a set of vertices as random samples 
  * (without replacement) from the graph
  * @param num_samples number of samples
+ * @param partition partition to be sampled from
  * @return
  * @throws 
 **/
-void Graph::set_uniform_sample(const unsigned int _num_samples)
+void Graph::set_uniform_sample(const unsigned int num_samples,
+	const std::vector<unsigned int>& partition)
 {
-	uniform_sampling = true;
 	srand (time(NULL));
-	num_samples = _num_samples;
 	count_sample.reserve(num_samples);
 
 	unsigned int sample;
+	
+	if(is_sampled.size() == 0)
+	{
+		is_sampled.reserve(size());
+
+		for(unsigned int v = 0; v < size(); v++)
+		{
+			is_sampled.push_back(false);
+		}
+	}
+	
+	double min_value = std::numeric_limits<double>::max();
+	double max_value = -1*std::numeric_limits<double>::max();
 
 	for(unsigned int v = 0; v < size(); v++)
 	{
 		count_sample.push_back(0);
 	}
-
-	while(samples.size() < num_samples && samples.size() < size())
+	
+	for(unsigned int v = 0; v < partition.size(); v++)
 	{
-		sample = random_int(size());
-
-		if(! count_sample.at(sample))
+		if(orig_value(partition.at(v)) < min_value)
 		{
-			samples.push_back(sample);
+		 	min_value = orig_value(partition.at(v));
 		}
 		
-		sum_values += vertex_values.at(sample);
-		count_sample.at(sample)++;
+		if(orig_value(partition.at(v)) > max_value)
+		{
+			max_value = orig_value(partition.at(v));
+		}
 	}
 
-	sum_weights = _num_samples;
+	
+	unsigned int samples_size = 0;
+	sum_values = 0;
+	sum_weights = 0;
+	sum_weighted_values = 0;
+	samples.clear();
+
+	while(samples_size < num_samples)
+	{
+		sample = random_int(partition.size());
+
+		if(! count_sample.at(partition.at(sample))
+			&& !is_sampled.at(partition.at(sample)))
+		{
+			samples.push_back(partition.at(sample));
+			is_sampled.at(partition.at(sample)) = true;
+		}
+		
+		sum_values += vertex_values.at(partition.at(sample));
+		sum_weights++;
+		sum_weighted_values += vertex_values.at(partition.at(sample));
+		count_sample.at(partition.at(sample))++;
+		samples_size++;
+	}
 }
 
 /**
- * Selects a set of biased vertices from the graph according to |v-mu|
+ * Selects a set of vertices as random samples 
+ * (without replacement) from the graph
  * @param num_samples number of samples
+ * @param partition partition to be sampled from
+ * @return
+ * @throws 
+**/
+void Graph::resample_uniform_sample(const unsigned int num_samples,
+	const std::vector<unsigned int>& partition)
+{
+	srand (time(NULL));
+	unsigned int sample;
+	
+	unsigned int samples_size = 0;
+	samples.clear();
+
+	while(samples_size < num_samples)
+	{
+		sample = random_int(partition.size());
+
+		if(! count_sample.at(partition.at(sample))
+			&& !is_sampled.at(partition.at(sample)))
+		{
+			samples.push_back(partition.at(sample));
+			is_sampled.at(partition.at(sample)) = true;
+		}
+		
+		sum_values += vertex_values.at(partition.at(sample));
+		sum_weights++;
+		sum_weighted_values += vertex_values.at(partition.at(sample));
+		count_sample.at(partition.at(sample))++;
+		samples_size++;
+	}
+}
+
+/**
+ * Selects (with replacement) a set of vertices from the graph 
+ * in a biased way  where the bias is proportional to 
+ * |value(vertex)-mean(partition)|.
+ * @param num_samples number of samples
+ * @param partition partition to be sampled from 
  * @return
  * @throws
 **/
-void Graph::set_biased_sample(const unsigned int _num_samples)
+void Graph::set_biased_sample(const unsigned int num_samples, 
+	const std::vector<unsigned int>& partition)
 {
-	biased_sampling = true;
 	srand (time(NULL));
 	count_sample.reserve(size());
-	num_samples = _num_samples;
+	count_sample.clear();
 
 	unsigned int sample;
-	std::vector<float> selection_prob;
+	selection_prob.clear();
+	selection_prob.reserve(partition.size());
 	mu = 0;
 	lambda = 0;
 	double rd;
+	double min_value = std::numeric_limits<double>::max();
+	double max_value = -1*std::numeric_limits<double>::max();
+
+	if(is_sampled.size() == 0)
+	{
+		is_sampled.reserve(size());
+		
+		for(unsigned int v = 0; v < size(); v++)
+		{
+			is_sampled.push_back(false);
+		}
+	}
 
 	for(unsigned int v = 0; v < size(); v++)
 	{
 		count_sample.push_back(0);
-		selection_prob.push_back(0);
-
-		mu += vertex_values.at(v);
 	}
 	
-	mu = (float) mu / size();
-
-	for(unsigned int v = 0; v < size(); v++)
+	for(unsigned int v = 0; v < partition.size(); v++)
 	{
-		selection_prob.at(v) = fabs(vertex_values.at(v) - mu);
-		lambda +=  fabs(vertex_values.at(v) - mu);
+		selection_prob.push_back(0);
+
+		mu += vertex_values.at(partition.at(v));
+
+		if(orig_value(partition.at(v)) < min_value)
+		{
+		 	min_value = orig_value(partition.at(v));
+		}
+		
+		if(orig_value(partition.at(v)) > max_value)
+		{
+			max_value = orig_value(partition.at(v));
+		}
 	}
 
-	for(unsigned int v = 0; v < size(); v++)
+	theta = fabs(max_value - min_value);
+	
+	mu = (float) mu / partition.size();
+
+	for(unsigned int v = 0; v < partition.size(); v++)
+	{
+		selection_prob.at(v) = 
+			fabs(vertex_values.at(partition.at(v)) - mu);
+		lambda +=  fabs(vertex_values.at(partition.at(v)) - mu);
+	}
+
+	for(unsigned int v = 0; v < partition.size(); v++)
 	{
 		selection_prob.at(v) /= lambda;
 
@@ -1026,31 +1240,125 @@ void Graph::set_biased_sample(const unsigned int _num_samples)
 		}
 	}
 
-	while(samples.size() < num_samples)
+	unsigned samples_size = 0;
+	sum_values = 0;
+	sum_weights = 0;
+	sum_weighted_values = 0;
+	samples.clear();
+	while(samples_size < num_samples)
 	{
 		rd = random_double();
 		sample = 0;
 		
-		while(sample < size() && selection_prob.at(sample) < rd) sample++;
-		
-		if(sample < size())
-		{
-			count_sample.at(sample) += 1;
-			sum_values += vertex_values.at(sample);
-			sum_weights += (double) lambda / fabs(vertex_values.at(sample) - mu);
+		while(sample < partition.size() && selection_prob.at(sample) < rd) sample++;
 
-			if(count_sample.at(sample) == 1) samples.push_back(sample);
+		if(sample < partition.size())
+		{
+			count_sample.at(partition.at(sample)) += 1;
+			sum_values += vertex_values.at(partition.at(sample));
+			sum_weights += (double) lambda / 
+				fabs(vertex_values.at(partition.at(sample)) - mu);
+			sum_weighted_values += 
+				(double) (vertex_values.at(partition.at(sample)) * lambda) 
+				/ fabs(vertex_values.at(partition.at(sample)) - mu);
+
+			if(count_sample.at(partition.at(sample)) == 1 &&
+				!is_sampled.at(partition.at(sample)))
+			{
+				samples.push_back(partition.at(sample));
+				is_sampled.at(partition.at(sample)) = true;
+			}
+			
+			samples_size++;
 		}
 	}
-/*
-	for(unsigned int v = 0; v < size(); v++)
-	{
-		printf("v = %d, orig_value(v) = %lf, value(v) = %lf, weight(v) = %lf, count(v) = %d\n", 
-			v, vertex_values.at(v), value(v), weight(v), count_sample.at(v));
-	}
+}
 
-	printf("mu = %lf, lambda = %lf\n", mu, lambda);
-*/
+/**
+ * Selects (with replacement) a set of vertices from the graph 
+ * in a biased way  where the bias is proportional to 
+ * |value(vertex)-mean(partition)|.
+ * @param num_samples number of samples
+ * @param partition partition to be sampled from 
+ * @return
+ * @throws
+**/
+void Graph::resample_biased_sample(const unsigned int num_samples, 
+	const std::vector<unsigned int>& partition)
+{
+	srand (time(NULL));
+	unsigned int sample;
+	samples.clear();
+	unsigned samples_size = 0;
+	double rd;
+	
+	while(samples_size < num_samples)
+	{
+		rd = random_double();
+		sample = 0;
+		
+		while(sample < partition.size() && selection_prob.at(sample) < rd) sample++;
+
+		if(sample < partition.size())
+		{
+			count_sample.at(partition.at(sample)) += 1;
+			sum_values += vertex_values.at(partition.at(sample));
+			sum_weights += (double) lambda / 
+				fabs(vertex_values.at(partition.at(sample)) - mu);
+			sum_weighted_values += 
+				(double) (vertex_values.at(partition.at(sample)) * lambda) 
+				/ fabs(vertex_values.at(partition.at(sample)) - mu);
+
+			if(count_sample.at(partition.at(sample)) == 1 &&
+				!is_sampled.at(partition.at(sample)))
+			{
+				samples.push_back(partition.at(sample));
+				is_sampled.at(partition.at(sample)) = true;
+			}
+			
+			samples_size++;
+		}
+	}
+}
+
+/**
+ * Selects a sample from the graph (biased or unbiased).
+ * @param num_samples number of samples
+ * @param partition partition to be sampled from 
+ * @return
+ * @throws
+**/
+void Graph::set_sample(const unsigned int num_samples,
+	const std::vector<unsigned int>& partition)
+{
+	if(biased_sampling)
+	{
+		set_biased_sample(num_samples, partition);
+	}
+	else
+	{
+		set_uniform_sample(num_samples, partition);
+	}
+}
+
+/**
+ * Selects a sample from the graph (biased or unbiased).
+ * @param num_samples number of samples
+ * @param partition partition to be sampled from 
+ * @return
+ * @throws
+**/
+void Graph::resample(const unsigned int num_samples,
+	const std::vector<unsigned int>& partition)
+{
+	if(biased_sampling)
+	{
+		resample_biased_sample(num_samples, partition);
+	}
+	else
+	{
+		resample_uniform_sample(num_samples, partition);
+	}
 }
 
 /**

@@ -112,7 +112,12 @@ class Graph
 		**/
 		void build_distance_str_slice_tree_sample
 			(const unsigned int max_radius);
-
+		
+		void build_distance_str_slice_tree_sample
+			(const unsigned int max_radius, 
+			std::vector<unsigned int>& partition);
+		
+		void start_distance_str_slice_tree_sample();
 		/**
 		 * Prints the slice tree distance structure
 		 * @param 
@@ -183,21 +188,69 @@ class Graph
 
 		/**
 		 * Selects a set of vertices as random samples 
-		 * (without replacement) from the graph
+		 * (with replacement) from the graph
 		 * @param num_samples number of samples
+		 * @param partition partition to be sampled from 
 		 * @return
 		 * @throws 
 		**/
-		void set_uniform_sample(const unsigned int num_samples);
+		void set_uniform_sample(const unsigned int num_samples,
+			const std::vector<unsigned int>& partition);
 
 		/**
-		 * Selects a set of biased vertices from the graph according to (v-miu)^2
+		 * Selects a set of vertices as random samples 
+		 * (with replacement) from the graph
 		 * @param num_samples number of samples
+		 * @param partition partition to be sampled from 
+		 * @return
+		 * @throws 
+		**/
+		void resample_uniform_sample(const unsigned int num_samples,
+			const std::vector<unsigned int>& partition);
+
+		/**
+		 * Selects (with replacement) a set of vertices from the graph 
+		 * in a biased way  where the bias is proportional to 
+		 * |value(vertex)-mean(partition)|.
+		 * @param num_samples number of samples
+		 * @param partition partition to be sampled from 
 		 * @return
 		 * @throws
 		**/
-		void set_biased_sample(const unsigned int num_samples);
+		void set_biased_sample(const unsigned int num_samples, 
+			const std::vector<unsigned int>& partition);
 
+		/**
+		 * Selects (with replacement) a set of vertices from the graph 
+		 * in a biased way  where the bias is proportional to 
+		 * |value(vertex)-mean(partition)|.
+		 * @param num_samples number of samples
+		 * @param partition partition to be sampled from 
+		 * @return
+		 * @throws
+		**/
+		void resample_biased_sample(const unsigned int _num_samples,
+			const std::vector<unsigned int>& partition);
+		
+		/**
+		 * Selects a sample from the graph (biased or unbiased).
+		 * @param num_samples number of samples
+		 * @param partition partition to be sampled from 
+		 * @return
+		 * @throws
+		**/
+		void set_sample(const unsigned int num_samples,
+			const std::vector<unsigned int>& partition);
+		
+		/**
+		 * Selects a sample from the graph (biased or unbiased).
+		 * @param num_samples number of samples
+		 * @param partition partition to be sampled from 
+		 * @return
+		 * @throws
+		**/
+		void resample(const unsigned int num_samples,
+			const std::vector<unsigned int>& partition);
 		/**
 		 * Prints the graph (for debugging purposes)
 		 * @param
@@ -412,7 +465,7 @@ class Graph
 		}
 
 		/**
-		 * Sets the sampling to uniform, but the samples are not
+		 * Sets the sampling to biased, but the samples are not
 		 * produced again.
 		 * @param 
 		 * @return
@@ -421,6 +474,20 @@ class Graph
 		void inline set_biased_sampling()
 		{
 			biased_sampling = true;
+			uniform_sampling = false;
+		}
+		
+		/**
+		 * Sets the sampling to uniform, but the samples are not
+		 * produced again.
+		 * @param 
+		 * @return
+		 * @throws 
+		**/
+		void inline set_uniform_sampling()
+		{
+			uniform_sampling = true;
+			biased_sampling = false;
 		}
 
 		/**
@@ -444,17 +511,6 @@ class Graph
 		}
 
 		/**
-		 * Returns the number of samples
-		 * @param
-		 * @return number of samples
-		 * @throws
-		**/
-		const inline unsigned int get_num_samples()
-		{
-			return num_samples;
-		}
-
-		/**
 		 * Returns the sum of values
 		 * @param
 		 * @return sum of values
@@ -475,11 +531,21 @@ class Graph
 		{
 			return sum_weights;
 		}
+
+		const inline double get_sum_weighted_values()
+		{
+			return sum_weighted_values;
+		}
+
+		const inline double get_theta()
+		{
+			return theta;
+		}
 	private:
 		std::vector< std::list<unsigned int>* > adjacency_list;
 		std::vector< std::list<unsigned int>* > back_adjacency_list;
 		unsigned short int** distance_matrix;
-		std::map<unsigned int, double> vertex_values;
+		std::vector<double> vertex_values;
 		std::map<unsigned int, std::string> vertex_names;
 		std::map<std::string,unsigned int> vertex_ids;
 		std::vector< std::vector< std::list<unsigned int >* >* > distance_str;
@@ -491,11 +557,15 @@ class Graph
 		double mu;
 		bool biased_sampling;
 		bool uniform_sampling;
-		unsigned int num_samples;
 		double sum_values;
 		double sum_weights;
+		double sum_weighted_values;
 		bool directed;
 		std::vector<std::vector<unsigned int>*> partition_sizes;
+		std::vector<bool> is_sampled;
+		double theta;
+		std::vector<float> selection_prob;
+		std::vector<unsigned int> distances;
 		
 		/**
 		 * Performs a bfs search over the graph, returning the size of the set of vertices 
@@ -531,6 +601,8 @@ class Graph
 		 * @throws
 		**/
 		unsigned int count_vertices(const std::string& values_file_name) const;
+
+		void free_distance_str();
 };
 
 #endif

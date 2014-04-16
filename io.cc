@@ -26,10 +26,10 @@ std::string Parameters::output_file_name = "";
 std::string Parameters::partition_sizes_file_name = "";
 unsigned int Parameters::budget = 0;
 unsigned int Parameters::num_partitions = 0;
-unsigned int Parameters::num_samples = 0;
+double Parameters::sampling_rate = 0;
 unsigned int Parameters::num_threads = 1;
 double Parameters::delta = 0.9;
-unsigned int Parameters::max_radius = UINT_MAX;
+unsigned int Parameters::max_radius = USHRT_MAX;
 double Parameters::rho = 1;
 bool Parameters::directed = false;
 bool Parameters::print_tree = false;
@@ -52,7 +52,7 @@ void Parameters::print_usage()
 	std::cout << " -c, --compression	compression algorithm" << std::endl;
 	std::cout << " -b, --budget		one or more budget values (bytes)" << std::endl;
 	std::cout << " -p, --numpart		one or more numbers of partitions" << std::endl;
-	std::cout << " -n, --numsamples		number of samples for slice tree" << std::endl;
+	std::cout << " -n, --sampling-rate	sampling rate" << std::endl;
 	std::cout << " -s, --partsizes		file with pre-computed partition sizes" << std::endl;
 	std::cout << " -t, --numthreads		number of threads to be used" << std::endl;
 	std::cout << " -d, --delta		confidence parameter for compression" << std::endl;
@@ -104,7 +104,7 @@ bool Parameters::read(int argc, char** argv) throw (InvalidParameterSettingExcep
 		>> GetOpt::Option('c', "compression", compression_algorithm, "")
 		>> GetOpt::Option('b', "budget", budget)
 		>> GetOpt::Option('p', "numpart", num_partitions)
-		>> GetOpt::Option('n', "numsamples", num_samples)
+		>> GetOpt::Option('n', "sampling-rate", sampling_rate)
 		>> GetOpt::Option('s', "partsizes", partition_sizes_file_name)
 		>> GetOpt::Option('t', "numthreads", num_threads)
 		>> GetOpt::Option('d', "delta", delta)
