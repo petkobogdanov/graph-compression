@@ -53,7 +53,7 @@ class Parameters
 		static unsigned int num_partitions;
 		static std::string compression_algorithm;
 		static std::string output_file_name;
-		static unsigned int num_samples;
+		static double sampling_rate;
 		static std::string partition_sizes_file_name;
 		static unsigned int num_threads;
 		static double delta;
