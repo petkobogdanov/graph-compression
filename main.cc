@@ -42,11 +42,12 @@ int main(int argc, char** argv)
 	compression_algorithms.push_back("ST");	  //Standard Slice Tree
 	compression_algorithms.push_back("STUS"); //Slice Tree with Uniform Sampling
 	compression_algorithms.push_back("STBS"); //Slice Tree with Biased Sampling
+	compression_algorithms.push_back("STBSR"); //Slice Tree with Biased Sampling and Resampling
 	compression_algorithms.push_back("AL");	  //Average Linkage
 	compression_algorithms.push_back("WV");	  //Wavelets
 	
 	Parameters::set_compression_algorithms(compression_algorithms);
-
+		
 	double sse;
 	double sse_reduction;
 	double compression_rate;
@@ -77,13 +78,13 @@ int main(int argc, char** argv)
 		{
 			if(Parameters::compression_algorithm == "ST" ||
 				Parameters::compression_algorithm == "STUS" ||
-				Parameters::compression_algorithm == "STBS")
+				Parameters::compression_algorithm == "STBS") 
 			{
 				graph->read_partition_sizes(Parameters::partition_sizes_file_name,
 					Parameters::max_radius);
 			}
 		}
-		
+
 		/*Performing GraphCompression*/
 		if(Parameters::compression_algorithm == "ST")
 		{
@@ -122,8 +123,10 @@ int main(int argc, char** argv)
 			
 			if(Parameters::budget > 0)
 			{
-				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split, 
-					Parameters::delta, Parameters::num_samples,
+				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, 
+					Parameters::exhaustive_split, 
+					Parameters::delta, 
+					Parameters::sampling_rate,
 					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
@@ -135,7 +138,7 @@ int main(int argc, char** argv)
 					*graph);
 				
 				alg = new SliceTreeUnifSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split,
-					Parameters::delta, Parameters::num_samples,
+					Parameters::delta, Parameters::sampling_rate,
 					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
@@ -156,7 +159,7 @@ int main(int argc, char** argv)
 			if(Parameters::budget > 0)
 			{
 				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split,
-					Parameters::delta, Parameters::num_samples,
+					Parameters::delta, Parameters::sampling_rate,
 					Parameters::rho); 
 				GraphCompression::compress(*graph, *alg, Parameters::budget, 
 					Parameters::output_file_name);
@@ -166,9 +169,8 @@ int main(int argc, char** argv)
 				unsigned int budget_from_num_partitions = 
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
-				
 				alg = new SliceTreeBiasSamp(*graph, Parameters::max_radius, Parameters::exhaustive_split, 
-					Parameters::delta, Parameters::num_samples, 
+					Parameters::delta, Parameters::sampling_rate, 
 					Parameters::rho);
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
@@ -270,7 +272,6 @@ int main(int argc, char** argv)
 			delete alg;
 		}
 
-		//Petko: Double freeing error commented temporarily
 		delete graph;
 	}
 
