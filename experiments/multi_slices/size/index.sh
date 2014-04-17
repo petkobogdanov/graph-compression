@@ -5,7 +5,7 @@
 
 source default.sh
 
-for p in ${param_reduction[@]}
+for p in ${param_sizes[@]}
 do
     for((g=1; g<=$num_graphs; g++))
     do
