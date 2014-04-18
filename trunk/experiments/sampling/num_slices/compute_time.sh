@@ -45,8 +45,6 @@ do
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
   avg_stus_fast=`echo "scale=10; $avg_stus_fast/($num_graphs*$num_runs_sampling)" | bc`
   avg_stus_slow=`echo "scale=10; $avg_stus_slow/($num_graphs*$num_runs_sampling)" | bc`
-  avg_stus_fast=`echo "scale=10; $avg_stus_fast/($num_graphs*$num_runs_sampling)" | bc`
-  avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
 
   echo "$p	$avg_st" >> $results_time\_st.dat
   echo "$p	$avg_stbs_fast" >> $results_time\_stbs_fast.dat
