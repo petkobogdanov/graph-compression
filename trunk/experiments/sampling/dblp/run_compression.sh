@@ -7,8 +7,8 @@ source default.sh
 
 for f in ${dblp_data_files[@]}
 do
-#    echo "$graph_compression -g dblp.graph -v $f.data -o output -c ST -p $num_partitions_alg -s dblp.sizes -m $max_radius -x > out_st_$f.txt"
-#    $graph_compression -g dblp.graph -v $f.data -o output -c ST -p $num_partitions_alg -s dblp.sizes -m $max_radius -x > out_st_$f.txt
+    echo "$graph_compression -g dblp.graph -v $f.data -o output -c ST -p $num_partitions_alg -s dblp.sizes -m $max_radius -x > out_st_$f.txt"
+    $graph_compression -g dblp.graph -v $f.data -o output -c ST -p $num_partitions_alg -s dblp.sizes -m $max_radius -x > out_st_$f.txt
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
