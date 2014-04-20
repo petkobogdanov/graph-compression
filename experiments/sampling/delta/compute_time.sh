@@ -53,7 +53,7 @@ do
   echo "$p	$avg_stus_slow" >> $results_time\_stus_slow.dat
 done
   
-avg_st=`echo "scale=10; $avg_st/$num_graphs" | bc`
+avg_st=`echo "scale=10; $avg_st/($num_graphs*${#param_delta[@]})" | bc`
 
 for p in ${param_delta[@]}
 do
