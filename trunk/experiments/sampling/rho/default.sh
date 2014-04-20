@@ -4,7 +4,7 @@
 #       @Arlei Silva
 
 num_graphs=10
-num_runs_sampling=10
+num_runs_sampling=1
 max_radius=2
 num_edges=5
 num_partitions_data=32
@@ -21,5 +21,5 @@ delta_slow_sampling=0.1
 rho_fast_sampling=0.1
 rho_slow_sampling=0.9
 rate_fast_sampling=0.01
-rate_slow_sampling=0.2
+rate_slow_sampling=0.1
 num_threads=8
