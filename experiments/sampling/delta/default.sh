@@ -24,3 +24,4 @@ rate_fast_sampling=0.01
 rate_slow_sampling=0.1
 num_threads=8
 results_time='delta_time'
+results_pruning='delta_pruning'
