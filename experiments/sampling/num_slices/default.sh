@@ -24,4 +24,4 @@ rate_fast_sampling=0.01
 rate_slow_sampling=0.1
 num_threads=8
 results_time='num_slices_time'
-results_not_pruned='num_slices_not_pruned'
+results_pruning='num_slices_pruning'
