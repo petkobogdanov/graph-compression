@@ -23,4 +23,5 @@ rho_slow_sampling=0.9
 rate_fast_sampling=0.01
 rate_slow_sampling=0.1
 num_threads=1
-results_time='reduction'
+results_time='reduction_time'
+results_pruning='reduction_pruning'
