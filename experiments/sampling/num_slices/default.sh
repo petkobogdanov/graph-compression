@@ -22,6 +22,6 @@ rho_fast_sampling=0.1
 rho_slow_sampling=0.9
 rate_fast_sampling=0.01
 rate_slow_sampling=0.1
-num_threads=8
+num_threads=1
 results_time='num_slices_time'
 results_pruning='num_slices_pruning'
