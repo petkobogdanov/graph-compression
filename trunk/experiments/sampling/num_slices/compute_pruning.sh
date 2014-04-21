@@ -10,7 +10,6 @@ rm $results_pruning\_stbs_slow.dat
 
 for p in ${param_num_partitions[@]}
 do
-  avg_st=0
   avg_stbs_fast=0
   avg_stbs_slow=0
   for((g=1; g<=$num_graphs; g++))
@@ -34,7 +33,6 @@ do
         avg_stbs_slow=`echo "scale=10; $avg_stbs_slow+$rate" | bc`
     done
   done
-  avg_st=`echo "scale=10; $avg_st/$num_graphs" | bc`
   avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/($num_graphs*$num_runs_sampling)" | bc`
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
 

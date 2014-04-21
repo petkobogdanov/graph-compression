@@ -1066,6 +1066,7 @@ void Graph::set_uniform_sample(const unsigned int num_samples,
 {
 	srand (time(NULL));
 	count_sample.reserve(num_samples);
+	count_sample.clear();
 
 	unsigned int sample;
 	
@@ -1100,6 +1101,7 @@ void Graph::set_uniform_sample(const unsigned int num_samples,
 		}
 	}
 
+	theta = fabs(max_value - min_value);
 	
 	unsigned int samples_size = 0;
 	sum_values = 0;
