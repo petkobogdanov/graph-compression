@@ -21,8 +21,6 @@ do
         echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c STBS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_slow_sampling -d $p -r $rho_slow_sampling -x > out_stbs_slow_$postfix_samp.txt"
         $graph_compression -g $prefix.graph -v $prefix.data -o output -c STBS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_slow_sampling -d $p -r $rho_slow_sampling -x > out_stbs_slow_$postfix_samp.txt
         
-	echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c STUS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_fast_sampling -d $p -r $rho_fast_sampling -x > out_stus_fast_$postfix_samp.txt"
-	$graph_compression -g $prefix.graph -v $prefix.data -o output -c STUS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_fast_sampling -d $p -r $rho_fast_sampling -x > out_stus_fast_$postfix_samp.txt
         echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c STUS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_slow_sampling -d $p -r $rho_slow_sampling -x > out_stus_slow_$postfix_samp.txt"
         $graph_compression -g $prefix.graph -v $prefix.data -o output -c STUS -p $num_partitions_alg -s $prefix.sizes -m $max_radius -n $rate_slow_sampling -d $p -r $rho_slow_sampling -x > out_stus_slow_$postfix_samp.txt
     done
