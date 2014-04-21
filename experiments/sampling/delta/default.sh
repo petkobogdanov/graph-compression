@@ -23,4 +23,4 @@ rho_slow_sampling=0.9
 rate_fast_sampling=0.01
 rate_slow_sampling=0.1
 num_threads=8
-results_time='delta'
+results_time='delta_time'
