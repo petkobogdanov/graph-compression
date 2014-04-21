@@ -33,7 +33,6 @@ do
         avg_stbs_slow=`echo "scale=10; $avg_stbs_slow+$rate" | bc`
     done
   done
-  avg_st=`echo "scale=10; $avg_st/$num_graphs" | bc`
   avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/($num_graphs*$num_runs_sampling)" | bc`
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
 
