@@ -10,10 +10,9 @@ rm $results_approximation\_stbs_fast.dat
 rm $results_approximation\_stbs_slow.dat
 rm $results_approximation\_stus_slow.dat
 
-avg_st=0
-
 for p in ${param_reduction[@]}
 do
+  avg_st=0
   avg_stbs_fast=0
   avg_stbs_slow=0
   avg_stus_slow=0
@@ -72,19 +71,17 @@ do
         avg_stus_slow=`echo "scale=10; $avg_stus_slow+$approximation" | bc`
     done
   done
+  avg_st=`echo "scale=10; $avg_st/($num_graphs)" | bc`
   avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/($num_graphs*$num_runs_sampling)" | bc`
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
   avg_stus_slow=`echo "scale=10; $avg_stus_slow/($num_graphs*$num_runs_sampling)" | bc`
 
+  echo "$p	$avg_st" >> $results_approximation\_st.dat
   echo "$p	$avg_stbs_fast" >> $results_approximation\_stbs_fast.dat
   echo "$p	$avg_stbs_slow" >> $results_approximation\_stbs_slow.dat
   echo "$p	$avg_stus_slow" >> $results_approximation\_stus_slow.dat
+
 done
   
-avg_st=`echo "scale=10; $avg_st/($num_graphs*${#param_reduction[@]})" | bc`
 
-for p in ${param_reduction[@]}
-do
-  echo "$p	$avg_st" >> $results_approximation\_st.dat
-done
 
