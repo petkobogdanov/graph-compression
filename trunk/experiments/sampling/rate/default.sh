@@ -25,4 +25,4 @@ rate_slow_sampling=0.1
 num_threads=1
 results_time='rate_time'
 results_pruning='rate_pruning'
-results_pruning='rate_approximation'
+results_approximation='rate_approximation'
