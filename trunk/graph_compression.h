@@ -709,7 +709,12 @@ class SliceTreeSamp: public SliceTree
 			res.second = 0;
 			return res;
 		}
-
+		
+		virtual double compute_estimate(const double one,
+			const double two, const double three) const
+		{
+			return 0;
+		}
 };
 
 /**
@@ -767,6 +772,9 @@ class SliceTreeBiasSamp: public SliceTreeSamp
 			const std::vector<unsigned int>& partition,
 			const unsigned int num_samples_part,
 			const unsigned int total_samples) const;
+		
+		double compute_estimate(const double one,
+			const double two, const double three) const;
 };
 
 class SliceTreeUnifSamp: public SliceTreeSamp
@@ -819,6 +827,9 @@ class SliceTreeUnifSamp: public SliceTreeSamp
 			const std::vector<unsigned int>& partition,
 			const unsigned int num_samples_part,
 			const unsigned int total_samples) const;
+		
+		double compute_estimate(const double one,
+			const double two, const double three) const;
 };
 
 /**
