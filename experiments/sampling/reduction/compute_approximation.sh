@@ -20,7 +20,7 @@ do
   for((g=1; g<=$num_graphs; g++))
   do
     prefix=$graph_name_prefix\_$g\_$p
-    postfix=$g
+    postfix=$g\_$p
     optimal_reduction=`grep optimal_sse_reduction $prefix.stats | cut -d ' ' -f3`
     optimal_reduction=`echo ${optimal_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
     alg_reduction=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
@@ -36,7 +36,7 @@ do
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
-        postfix_samp=$postfix\_$p\_$r
+        postfix_samp=$postfix\_$r
         alg_reduction=`grep sse_reduction out_stbs_fast_$postfix_samp.txt | cut -d ' ' -f3`
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
