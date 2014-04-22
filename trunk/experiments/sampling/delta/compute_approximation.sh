@@ -38,8 +38,6 @@ do
     for((r=1; r<=$num_runs_sampling; r++))
     do
         postfix_samp=$postfix\_$p\_$r
-        approximation=`grep compression_time out_stbs_fast_$postfix_samp.txt | cut -d ' ' -f3`
-        
         alg_reduction=`grep sse_reduction out_stbs_fast_$postfix_samp.txt | cut -d ' ' -f3`
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
@@ -49,7 +47,7 @@ do
           approximation=1
         fi
 
-	avg_stbs_fast=`echo "scale=10; $avg_stbs_fat+$approximation" | bc`
+	avg_stbs_fast=`echo "scale=10; $avg_stbs_fast+$approximation" | bc`
 
         alg_reduction=`grep sse_reduction out_stbs_slow_$postfix_samp.txt | cut -d ' ' -f3`
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
