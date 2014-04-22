@@ -8,7 +8,7 @@ source default.sh
 rm $results_pruning\_stbs_fast.dat
 rm $results_pruning\_stbs_slow.dat
 
-for p in ${param_size[@]}
+for p in ${param_sizes[@]}
 do
   avg_stbs_fast=0
   avg_stbs_slow=0

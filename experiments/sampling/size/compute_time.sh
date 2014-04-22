@@ -10,7 +10,7 @@ rm $results_time\_stbs_fast.dat
 rm $results_time\_stbs_slow.dat
 rm $results_time\_stus_slow.dat
 
-for p in ${param_size[@]}
+for p in ${param_sizes[@]}
 do
   avg_st=0
   avg_stbs_fast=0
