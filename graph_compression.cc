@@ -709,6 +709,27 @@ std::pair<double, double>
 	res.second = 0;
 	return res;
 }
+				
+double SliceTreeBiasSamp::compute_estimate(const double one, 
+	const double two, const double three) const
+{
+	double estimate = (double) 3 /
+		(((double) 1 / one)
+		+((double) 1 / two)+
+		(double) 1 / three);
+
+	return estimate;
+}
+
+double SliceTreeUnifSamp::compute_estimate(const double one, 
+	const double two, const double three) const
+{
+	double estimate = (double) 2 /
+		(((double) 1 / one)
+		+((double) 1 / two));
+
+	return estimate;
+}
 
 /**
  * Computes upper bounds on the error reduction of slices centered
@@ -919,11 +940,9 @@ void SliceTreeSamp::upper_bound_error_reduction(up_bound_t* up_bound,
 			{
 				up_bound->bound = bound_value;
 			}
-			
-			estimate = (double) 2 /
-				(((double) 1 / up_est_one.second)
-				+((double) 1 / up_est_two.second)+
-				(double) 1 / up_est_three.second);
+
+			estimate = compute_estimate(up_est_one.second, 
+				up_est_two.second, up_est_three.second);
 			
 //			printf("estimate=%lf, one=%lf, second=%lf, third=%lf\n", estimate,
 //				up_est_one.second, up_est_two.second, up_est_three.second);
@@ -977,7 +996,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node)
 	
 	while(remaining_centers > num_samples)
 	{
-//		printf("remaining centers = %d, samples = %d\n", remaining_centers, total_samples);
+		//printf("remaining centers = %d, samples = %d\n", remaining_centers, total_samples);
 		best_estimate = -1*std::numeric_limits<double>::max();
 		up_bound_best_estimate = NULL;
 		
@@ -1047,7 +1066,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node)
 			}
 		}
 		
-//		printf("opt_reduction = %lf, best_estimate = %lf\n", opt_reduction, best_estimate);
+		//printf("opt_reduction = %lf, best_estimate = %lf\n", opt_reduction, best_estimate);
 
 		if(best_estimate >= opt_reduction)
 		{
