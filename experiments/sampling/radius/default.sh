@@ -19,7 +19,11 @@ param_radius=(1 2 3)
 delta_fast_sampling=0.4
 delta_slow_sampling=0.1
 rho_fast_sampling=0.1
-rho_slow_sampling=0.9
+rho_slow_sampling=0.6
 rate_fast_sampling=0.01
-rate_slow_sampling=0.2
-num_threads=8
+rate_slow_sampling=0.1
+num_threads=1
+radius_time='radius_time'
+radius_pruning='radius_pruning'
+radius_approximation='radius_approximation'
+
