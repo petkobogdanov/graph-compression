@@ -7,7 +7,7 @@ source default.sh
 
 rm $results_pruning.dat
 
-echo "data      STBS_SLOW       STBS_FAST" >> $results_time.dat
+echo "data      STBS_SLOW       STBS_FAST" >> $results_pruning.dat
 
 for f in ${dblp_data_files[@]}
 do
