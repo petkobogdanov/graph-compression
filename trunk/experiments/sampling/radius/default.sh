@@ -23,7 +23,7 @@ rho_slow_sampling=0.6
 rate_fast_sampling=0.01
 rate_slow_sampling=0.1
 num_threads=1
-radius_time='radius_time'
-radius_pruning='radius_pruning'
-radius_approximation='radius_approximation'
+results_time='radius_time'
+results_pruning='radius_pruning'
+results_approximation='radius_approximation'
 
