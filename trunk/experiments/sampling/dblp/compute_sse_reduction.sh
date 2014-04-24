@@ -40,7 +40,7 @@ do
   rate_st=`echo "scale=10; $avg_st/$sse" | bc`
   rate_stbs_slow=`echo "scale=10; $avg_stbs_slow/$sse" | bc`
   rate_stbs_fast=`echo "scale=10; $avg_stbs_fast/$sse" | bc`
-  echo "$f	$avg_st/$rate_st	$avg_stbs_slow/	$avg_stbs_fast" >> $results_sse_reduction.dat
+  echo "$f	$avg_st/$rate_st	$avg_stbs_slow/$rate_stbs_slow	$avg_stbs_fast/$rate_stbs_fast" >> $results_sse_reduction.dat
 done
   
 
