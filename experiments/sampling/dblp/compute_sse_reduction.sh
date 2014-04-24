@@ -17,6 +17,7 @@ do
   avg_stus_slow=0
   postfix=$f  
   sse=`grep -m 1 sse out_st_$postfix.txt | cut -d ' ' -f3`
+  sse=`echo ${sse} | sed -e 's/[eE]+*/\\*10\\^/'`
   alg_reduction=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
   alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
 
