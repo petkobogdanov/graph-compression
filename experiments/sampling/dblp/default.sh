@@ -15,3 +15,4 @@ rate_fast_sampling=0.001
 rate_slow_sampling=0.02
 num_threads=8
 dblp_data_files=('dblp_ai' 'dblp_alg' 'dblp_arch' 'dblp_bio' 'dblp_dm' 'dblp_edu' 'dblp_graph' 'dblp_hci' 'dblp_net' 'dblp_os' 'dblp_para' 'dblp_pl' 'dblp_sec' 'dblp_se')
+results_time="dblp_time"
