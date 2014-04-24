@@ -7,7 +7,7 @@ source default.sh
 
 rm $results_pruning.dat
 
-for p in ${param_pruning[@]}
+for p in ${param_reduction[@]}
 do
   avg_stbs_fast=0
   avg_stbs_slow=0
@@ -35,5 +35,5 @@ do
   avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/($num_graphs*$num_runs_sampling)" | bc`
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
 
-  echo "$p	$avg_stbs_fast $avg_stbs_slow" >> $results_pruning\_stbs_fast.dat
+  echo "$p	$avg_stbs_fast $avg_stbs_slow" >> $results_pruning.dat
 done
