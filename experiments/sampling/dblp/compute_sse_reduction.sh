@@ -16,6 +16,7 @@ do
   avg_stbs_slow=0
   avg_stus_slow=0
   postfix=$f  
+  sse=`grep -m 1 sse out_st_$postfix.txt | cut -d ' ' -f3`
   alg_reduction=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
   alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
 
@@ -36,8 +37,10 @@ do
   done
   avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/$num_runs_sampling" | bc`
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/$num_runs_sampling" | bc`
-
-  echo "$f	$avg_st	$avg_stbs_slow	$avg_stbs_fast" >> $results_sse_reduction.dat
+  rate_st=`echo "scale=10; $avg_st/$sse" | bc`
+  rate_stbs_slow=`echo "scale=10; $avg_stbs_slow/$sse" | bc`
+  rate_stbs_fast=`echo "scale=10; $avg_stbs_fast/$sse" | bc`
+  echo "$f	$avg_st/$rate_st	$avg_stbs_slow/	$avg_stbs_fast" >> $results_sse_reduction.dat
 done
   
 
