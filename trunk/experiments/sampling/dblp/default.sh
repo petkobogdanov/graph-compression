@@ -17,4 +17,4 @@ num_threads=8
 dblp_data_files=('dblp_ai' 'dblp_alg' 'dblp_arch' 'dblp_bio' 'dblp_dm' 'dblp_edu' 'dblp_graph' 'dblp_hci' 'dblp_net' 'dblp_os' 'dblp_para' 'dblp_pl' 'dblp_sec' 'dblp_se')
 results_time="dblp_time"
 results_pruning="dblp_pruning"
-results_approximation="dblp_approximation"
+results_sse_reduction="dblp_sse_reduction"
