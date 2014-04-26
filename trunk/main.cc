@@ -227,8 +227,6 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				graph->build_distance_matrix();
-				
 				unsigned int budget_from_num_partitions = 
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
