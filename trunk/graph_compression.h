@@ -1129,6 +1129,8 @@ class Wavelets: public GraphCompressionAlgorithm
 		 * @throws
 		**/
 		void build_wavelet_tree_recursive(std::vector<wavelets_node_t*>& wavelets_nodes);
+
+		const double compute_sse();
 };
 
 /**

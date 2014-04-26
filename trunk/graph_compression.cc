@@ -2248,6 +2248,8 @@ void set_compressed_values_st_node(st_node_t* st_node, std::vector<double>& valu
 **/
 void SliceTree::set_compressed_values()
 {
+	values.clear();
+	
 	for(unsigned int v = 0; v < graph->size(); v++)
 	{
 		values.push_back(0);
@@ -2451,6 +2453,8 @@ void set_compressed_values_al_node_t(al_node_t* al_node, std::vector<double>& va
 **/
 void AverageLinkage::set_compressed_values()
 {
+	values.clear();
+	
 	for(unsigned int v = 0; v < graph->size(); v++)
 	{
 		values.push_back(0);
@@ -3055,9 +3059,46 @@ void Wavelets::compress(const unsigned int budget)
 	budget_compression = budget;
 	num_coefficients = (unsigned int) floor(budget_compression 
 		/ SIZE_FLOAT_INT);
+	
+	unsigned int best_start = 0;
+	double best_start_sse = std::numeric_limits<double>::max();
+	double sse;
+
+	for(unsigned int v = 0; v < graph->size(); v++)
+	{
+		graph->build_priority_first_vector(v);
+
+		compute_average_coefficients();
+		compute_difference_coefficients();
+		keep_top_coefficients();
+		set_compressed_values();
+		sse = compute_sse();
+
+		if(sse < best_start_sse)
+		{
+			best_start = v;
+			best_start_sse = sse;
+		}
+	}
+
+	graph->build_priority_first_vector(best_start);
+
 	compute_average_coefficients();
 	compute_difference_coefficients();
 	keep_top_coefficients();
+}
+
+
+const double Wavelets::compute_sse() 
+{
+	double sse_value = 0;
+
+	for(unsigned int v = 0; v < graph->size(); v++)
+	{
+		sse_value = sse_value + pow(graph->orig_value(v) - value(v), 2     );
+	}
+
+	return sse_value;
 }
 
 /**
@@ -3198,6 +3239,8 @@ void set_compressed_values_wavelets_node_t(wavelets_node_t* wavelets_node,
 **/
 void Wavelets::set_compressed_values()
 {
+	values.clear();
+
 	for(unsigned int v = 0; v < graph->size(); v++)
 	{
 		values.push_back(0);

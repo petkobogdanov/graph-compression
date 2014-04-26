@@ -60,6 +60,18 @@ class ExecTime
 		}
 		
 		/**
+		  * Resets the counter
+		  * @param
+		  * @return
+		  * @throws
+		 **/
+		inline void reset()
+		{
+			time = 0;
+		}
+		
+		
+		/**
 		  * Stops the counter
 		  * @param
 		  * @return
