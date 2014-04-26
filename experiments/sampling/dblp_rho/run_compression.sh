@@ -16,11 +16,6 @@ do
             $graph_compression -g dblp.graph -v $f.data -o output -c STBS -p $num_partitions_alg -s dblp.sizes -m $max_radius -n $rate_fast_sampling -d $delta_fast_sampling -r $p -x > out_stbs_fast_$postfix_samp.txt
             echo "$graph_compression -g dblp.graph -v $f.data -o output -c STBS -p $num_partitions_alg -s dblp.sizes -m $max_radius -n $rate_slow_sampling -d $delta_slow_sampling -r $p -x > out_stbs_slow_$postfix_samp.txt"
             $graph_compression -g dblp.graph -v $f.data -o output -c STBS -p $num_partitions_alg -s dblp.sizes -m $max_radius -n $rate_slow_sampling -d $delta_slow_sampling -r $p -x > out_stbs_slow_$postfix_samp.txt
-        
-	    echo "$graph_compression -g dblp.graph -v $f.data -o output -c STUS -p $num_partitions_alg -s dblp.sizes -m $max_radius -n $rate_fast_sampling -d $delta_fast_sampling -r $p -x > out_stus_fast_$postfix_samp.txt"
-	    $graph_compression -g dblp.graph -v $f.data -o output -c STUS -p $num_partitions_alg -s dblp.sizes -m $max_radius -n $rate_fast_sampling -d $delta_fast_sampling -r $p -x > out_stus_fast_$postfix_samp.txt
-#            echo "$graph_compression -g dblp.graph -v $f.data -o output -c STUS -p $num_partitions_alg -s dblp.sizes -m $max_radius -n $rate_slow_sampling -d $delta_slow_sampling -r $p -x > out_stus_slow_$postfix_samp.txt"
-#            $graph_compression -g dblp.graph -v $f.data -o output -c STUS -p $num_partitions_alg -s dblp.sizes -m $max_radius -n $rate_slow_sampling -d $delta_slow_sampling -r $p -x > out_stus_slow_$postfix_samp.txt
         done
     done
 done
