@@ -148,7 +148,7 @@ class Graph
 		 * @return 
 		 * @throws 
 		**/
-		void build_priority_first_vector();
+		void build_priority_first_vector(const unsigned int start);
 		
 		/**
 		 * Performs a BFS search from the center and bounded by radius distance

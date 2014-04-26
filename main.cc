@@ -215,7 +215,7 @@ int main(int argc, char** argv)
 		{
 			/*Wavelets requires a sorted vector*/
 			//graph->build_bfs_vector();
-			graph->build_priority_first_vector();
+//			graph->build_priority_first_vector();
 			
 			exec_time_compression->start();
 			

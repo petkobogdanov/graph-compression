@@ -977,10 +977,11 @@ void Graph::build_bfs_vector()
  * @return 
  * @throws 
 **/
-void Graph::build_priority_first_vector()
+void Graph::build_priority_first_vector(const unsigned int start)
 {
 	std::vector<bool> visited;
 	std::vector<unsigned int> count;
+	sorted_vector.clear();
 	sorted_vector.reserve(size());
 	visited.reserve(size());
 
@@ -991,11 +992,11 @@ void Graph::build_priority_first_vector()
 	}
 
 	/*The priority search starts from the vertex 0*/
-	sorted_vector.push_back(0);
-	visited.at(0) = true;
+	sorted_vector.push_back(start);
+	visited.at(start) = true;
 	
-	for (std::list<unsigned int>::iterator it = adjacency_list[0]->begin(); 
-		it != adjacency_list[0]->end(); ++it)
+	for (std::list<unsigned int>::iterator it = adjacency_list[start]->begin(); 
+		it != adjacency_list[start]->end(); ++it)
 	{
 		count[*it] = count[*it] + 1;
 	}
