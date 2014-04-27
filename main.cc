@@ -231,6 +231,7 @@ int main(int argc, char** argv)
 					SliceTree::budget(Parameters::num_partitions, 
 					*graph);
 				alg = new Wavelets(*graph);
+				
 				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
 					Parameters::output_file_name);
 			}
