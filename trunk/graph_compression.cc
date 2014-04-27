@@ -2862,6 +2862,39 @@ void AverageLinkage::write(const std::string& output_file_name) const
 }
 
 /**
+ * Frees the memory of the tree recursively
+ * @param wavelets_node_node parent node
+ * @return
+ * @throws
+**/
+void free_wavelets_node_t(wavelets_node_t* wavelets_node)
+{
+	if(wavelets_node->left != NULL)
+	{
+		free_wavelets_node_t(wavelets_node->left);
+	}
+
+	if(wavelets_node->right != NULL)
+	{
+		free_wavelets_node_t(wavelets_node->right);
+	}
+
+	delete wavelets_node;
+}
+
+/**
+ * Destructor.
+ * @param
+ * @return 
+ * @throws
+**/
+Wavelets::~Wavelets()
+{
+	free_wavelets_node_t(tree);
+}
+
+
+/**
  * Builds a wavelet tree from the wavelet nodes
  * @param wavelets_nodes wavelets nodes
  * @return
@@ -2966,9 +2999,13 @@ void Wavelets::keep_top_coefficients()
 
 Wavelets::Wavelets(Graph& _graph):
 	GraphCompressionAlgorithm(_graph)
+{;}
+
+void Wavelets::build_wavelet_tree()
 {
 	std::vector<wavelets_node_t*> wavelets_nodes;
 	wavelets_nodes.reserve(graph->size());
+
 	wavelets_node_t* wavelets_node;
 
 	for(unsigned int v = 0; v < graph->size(); v++)
@@ -2983,7 +3020,7 @@ Wavelets::Wavelets(Graph& _graph):
 
 		wavelets_nodes.push_back(wavelets_node);
 	}
-
+	
 	build_wavelet_tree_recursive(wavelets_nodes);
 
 	tree = wavelets_nodes.at(0);
@@ -3068,21 +3105,27 @@ void Wavelets::compress(const unsigned int budget)
 	{
 		graph->build_priority_first_vector(v);
 
+		build_wavelet_tree();
 		compute_average_coefficients();
 		compute_difference_coefficients();
 		keep_top_coefficients();
 		set_compressed_values();
 		sse = compute_sse();
 
+//		printf("v = %d, sse = %lf\n", v, sse);
+		
 		if(sse < best_start_sse)
 		{
 			best_start = v;
 			best_start_sse = sse;
 		}
+
+		free_wavelets_node_t(tree);
 	}
 
 	graph->build_priority_first_vector(best_start);
 
+	build_wavelet_tree();
 	compute_average_coefficients();
 	compute_difference_coefficients();
 	keep_top_coefficients();
@@ -3247,37 +3290,5 @@ void Wavelets::set_compressed_values()
 	}
 
 	set_compressed_values_wavelets_node_t(tree, values);
-}
-
-/**
- * Frees the memory of the tree recursively
- * @param wavelets_node_node parent node
- * @return
- * @throws
-**/
-void free_wavelets_node_t(wavelets_node_t* wavelets_node)
-{
-	if(wavelets_node->left != NULL)
-	{
-		free_wavelets_node_t(wavelets_node->left);
-	}
-
-	if(wavelets_node->right != NULL)
-	{
-		free_wavelets_node_t(wavelets_node->right);
-	}
-
-	delete wavelets_node;
-}
-
-/**
- * Destructor.
- * @param
- * @return 
- * @throws
-**/
-Wavelets::~Wavelets()
-{
-	free_wavelets_node_t(tree);
 }
 
