@@ -3097,34 +3097,6 @@ void Wavelets::compress(const unsigned int budget)
 	num_coefficients = (unsigned int) floor(budget_compression 
 		/ SIZE_FLOAT_INT);
 	
-	unsigned int best_start = 0;
-	double best_start_sse = std::numeric_limits<double>::max();
-	double sse;
-
-	for(unsigned int v = 0; v < graph->size(); v++)
-	{
-		graph->build_priority_first_vector(v);
-
-		build_wavelet_tree();
-		compute_average_coefficients();
-		compute_difference_coefficients();
-		keep_top_coefficients();
-		set_compressed_values();
-		sse = compute_sse();
-
-//		printf("v = %d, sse = %lf\n", v, sse);
-		
-		if(sse < best_start_sse)
-		{
-			best_start = v;
-			best_start_sse = sse;
-		}
-
-		free_wavelets_node_t(tree);
-	}
-
-	graph->build_priority_first_vector(best_start);
-
 	build_wavelet_tree();
 	compute_average_coefficients();
 	compute_difference_coefficients();
