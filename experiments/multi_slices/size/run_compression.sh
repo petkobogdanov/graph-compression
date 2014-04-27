@@ -14,14 +14,14 @@ do
     echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c ST -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_st_$postfix.txt"
     $graph_compression -g $prefix.graph -v $prefix.data -o output -c ST -b $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_st_$postfix.txt
     
-    if ["$p" -le "100000"]
-    then
-      echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt"
-      $graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt
-    fi
+    echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt"
+    $graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt
     
-    echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c WV -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_wv_$postfix.txt"
-    $graph_compression -g $prefix.graph -v $prefix.data -o output -c WV -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_wv_$postfix.txt
+    echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c WVP -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_wvp_$postfix.txt"
+    $graph_compression -g $prefix.graph -v $prefix.data -o output -c WVP -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_wvp_$postfix.txt
+    
+    echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c WVB -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_wvb_$postfix.txt"
+    $graph_compression -g $prefix.graph -v $prefix.data -o output -c WVB -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_wvb_$postfix.txt
     
     for((r=1; r<=$num_runs_sampling; r++))
     do

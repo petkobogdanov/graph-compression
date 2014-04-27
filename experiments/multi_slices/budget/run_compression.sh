@@ -17,8 +17,11 @@ do
     echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -b $p -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt"
     $graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -b $p -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt
     
-    echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c WV -b $p -s $prefix.sizes -m $max_radius -x > out_wv_$postfix.txt"
-    $graph_compression -g $prefix.graph -v $prefix.data -o output -c WV -b $p -s $prefix.sizes -m $max_radius -x > out_wv_$postfix.txt
+    echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c WVP -b $p -s $prefix.sizes -m $max_radius -x > out_wvp_$postfix.txt"
+    $graph_compression -g $prefix.graph -v $prefix.data -o output -c WVP -b $p -s $prefix.sizes -m $max_radius -x > out_wvp_$postfix.txt
+    
+    echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c WVB -b $p -s $prefix.sizes -m $max_radius -x > out_wvb_$postfix.txt"
+    $graph_compression -g $prefix.graph -v $prefix.data -o output -c WVB -b $p -s $prefix.sizes -m $max_radius -x > out_wvb_$postfix.txt
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
