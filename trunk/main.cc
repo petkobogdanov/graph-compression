@@ -44,7 +44,8 @@ int main(int argc, char** argv)
 	compression_algorithms.push_back("STBS"); //Slice Tree with Biased Sampling
 	compression_algorithms.push_back("STBSR"); //Slice Tree with Biased Sampling and Resampling
 	compression_algorithms.push_back("AL");	  //Average Linkage
-	compression_algorithms.push_back("WV");	  //Wavelets
+	compression_algorithms.push_back("WVP");	  //Wavelets with priority vector
+	compression_algorithms.push_back("WVB");	  //Wavelets with BFS
 	
 	Parameters::set_compression_algorithms(compression_algorithms);
 		
@@ -211,11 +212,39 @@ int main(int argc, char** argv)
 			exec_time_compression->stop();
 		}
 		
-		if(Parameters::compression_algorithm == "WV")
+		if(Parameters::compression_algorithm == "WVP")
 		{
 			/*Wavelets requires a sorted vector*/
-			//graph->build_bfs_vector();
-//			graph->build_priority_first_vector();
+//			graph->build_bfs_vector();
+			graph->build_priority_first_vector(0);
+			
+			exec_time_compression->start();
+			
+			if(Parameters::budget > 0)
+			{
+				alg = new Wavelets(*graph);
+				GraphCompression::compress(*graph, *alg, Parameters::budget, 
+					Parameters::output_file_name);
+			}
+			else
+			{
+				unsigned int budget_from_num_partitions = 
+					SliceTree::budget(Parameters::num_partitions, 
+					*graph);
+				alg = new Wavelets(*graph);
+				
+				GraphCompression::compress(*graph, *alg, budget_from_num_partitions, 
+					Parameters::output_file_name);
+			}
+			
+			exec_time_compression->stop();
+		}
+		
+		if(Parameters::compression_algorithm == "WVB")
+		{
+			/*Wavelets requires a sorted vector*/
+			graph->build_bfs_vector();
+//			graph->build_priority_first_vector(0);
 			
 			exec_time_compression->start();
 			
