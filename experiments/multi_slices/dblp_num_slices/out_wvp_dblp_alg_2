@@ -1,0 +1,6 @@
+budget = 21
+sse = 1.08485e+06
+sse_reduction = 2842.01
+compression_rate = 491890
+compression_time = 0.357689
+pruned_slices = 0
