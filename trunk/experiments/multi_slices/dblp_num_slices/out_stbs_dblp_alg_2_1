@@ -1,0 +1,9 @@
+budget = 20
+sse = 958910
+sse_reduction = 128786
+compression_rate = 516484
+compression_time = 15.7157
+pruned_slices = 0.999999
+count_bound_1 = 130032
+count_bound_2 = 0
+count_bound_3 = 1844432
