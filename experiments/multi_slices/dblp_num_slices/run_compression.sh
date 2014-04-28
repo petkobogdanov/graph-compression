@@ -15,8 +15,8 @@ do
 	#echo "$graph_compression -c AL -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_al_${g}_${p}"
 	#$graph_compression -c AL -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_al_${g}_${p}
 
-	echo "$graph_compression -c WVP -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_wvp_${g}_${p}"
-	$graph_compression -c WVP -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_wvp_${g}_${p}
+	#echo "$graph_compression -c WVP -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_wvp_${g}_${p}"
+	#$graph_compression -c WVP -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_wvp_${g}_${p}
 
 	#echo "$graph_compression -c WVB -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_wvb_${g}_${p}"
 	#$graph_compression -c WVB -x -p $p -m $max_radius -g $data/dblp.graph -s $data/dblp.index -v $data/$g.data > out_wvb_${g}_${p}
