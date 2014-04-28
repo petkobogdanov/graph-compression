@@ -4,7 +4,7 @@
 #       @Arlei Silva
 
 num_graphs=10
-num_runs_sampling=10
+num_runs_sampling=1
 max_radius=2
 num_edges=5
 num_partitions_data=16
