@@ -12,7 +12,7 @@ do
     prefix=$graph_name_prefix\_$g\_$p
     postfix=$g\_$p
     echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c ST -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_st_$postfix.txt"
-    $graph_compression -g $prefix.graph -v $prefix.data -o output -c ST -b $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_st_$postfix.txt
+    $graph_compression -g $prefix.graph -v $prefix.data -o output -c ST -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_st_$postfix.txt
     
     echo "$graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt"
     $graph_compression -g $prefix.graph -v $prefix.data -o output -c AL -p $num_partitions_alg -s $prefix.sizes -m $max_radius -x > out_al_$postfix.txt
