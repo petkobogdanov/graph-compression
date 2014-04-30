@@ -49,7 +49,7 @@ do
       approximation=1
     fi
 
-    avg_st=`echo "scale=10; $avg_al+" $approximation| bc`
+    avg_al=`echo "scale=10; $avg_al+" $approximation| bc`
     
     alg_reduction=`grep sse_reduction out_wvp_$postfix.txt | cut -d ' ' -f3`
     alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
@@ -60,7 +60,7 @@ do
       approximation=1
     fi
 
-    avg_st=`echo "scale=10; $avg_wvp+" $approximation| bc`
+    avg_wvp=`echo "scale=10; $avg_wvp+" $approximation| bc`
     
     alg_reduction=`grep sse_reduction out_wvb_$postfix.txt | cut -d ' ' -f3`
     alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
@@ -71,7 +71,7 @@ do
       approximation=1
     fi
 
-    avg_st=`echo "scale=10; $avg_wvb+" $approximation| bc`
+    avg_wvb=`echo "scale=10; $avg_wvb+" $approximation| bc`
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
