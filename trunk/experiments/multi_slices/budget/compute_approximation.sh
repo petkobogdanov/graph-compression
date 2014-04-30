@@ -8,7 +8,6 @@ source default.sh
 rm $results_approximation\_st.dat
 rm $results_approximation\_stbs_fast.dat
 rm $results_approximation\_stbs_slow.dat
-rm $results_approximation\_stus_slow.dat
 rm $results_approximation\_al.dat
 rm $results_approximation\_wvp.dat
 rm $results_approximation\_wvb.dat
@@ -19,7 +18,6 @@ for p in ${param_rho[@]}
 do
   avg_stbs_fast=0
   avg_stbs_slow=0
-  avg_stus_slow=0
   avg_al=0
   avg_wvp=0
   avg_wvb=0
@@ -99,26 +97,13 @@ do
         fi
         
         avg_stbs_slow=`echo "scale=10; $avg_stbs_slow+$approximation" | bc`
-        
-        alg_reduction=`grep sse_reduction out_stus_slow_$postfix_samp.txt | cut -d ' ' -f3`
-        alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
-        approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
-	
-        if [ "$approximation" > "1" ]
-        then
-          approximation=1
-	fi
-	
-        avg_stus_slow=`echo "scale=10; $avg_stus_slow+$approximation" | bc`
     done
   done
   avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/($num_graphs*$num_runs_sampling)" | bc`
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
-  avg_stus_slow=`echo "scale=10; $avg_stus_slow/($num_graphs*$num_runs_sampling)" | bc`
 
   echo "$p	$avg_stbs_fast" >> $results_approximation\_stbs_fast.dat
   echo "$p	$avg_stbs_slow" >> $results_approximation\_stbs_slow.dat
-  echo "$p	$avg_stus_slow" >> $results_approximation\_stus_slow.dat
 done
   
 avg_st=`echo "scale=10; $avg_st/($num_graphs*${#param_budget[@]})" | bc`
