@@ -607,6 +607,7 @@ class Graph
 		unsigned int count_vertices(const std::string& values_file_name) const;
 
 		void free_distance_str();
+		void clear_distance_str();
 };
 
 #endif

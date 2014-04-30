@@ -319,6 +319,19 @@ void Graph::free_distance_str()
 	distance_str.clear();
 }
 
+void Graph::clear_distance_str()
+{
+	for(unsigned int v = 0; v < distance_str.size(); v++)
+	{
+		for(unsigned int d = 0; d < distance_str[v]->size(); d++)
+		{
+			distance_str[v]->at(d)->clear();
+		}
+	}
+
+	is_sampled.clear();
+}
+
 /**
  * Counts the number of vertices in the input graph
  * @param values_file_name file with the vertex values
