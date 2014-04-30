@@ -24,7 +24,7 @@ do
   
   for((g=1; g<=$num_graphs; g++))
   do
-    prefix=$graph_name_prefix\_$g_$p
+    prefix=$graph_name_prefix\_$g\_$p
     postfix=$g\_$p
     optimal_reduction=`grep optimal_sse_reduction $prefix.stats | cut -d ' ' -f3`
     optimal_reduction=`echo ${optimal_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
