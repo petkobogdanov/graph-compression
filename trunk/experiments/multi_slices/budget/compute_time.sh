@@ -27,7 +27,7 @@ do
   for((g=1; g<=$num_graphs; g++))
   do
     prefix=$graph_name_prefix\_$g\_$p
-    postfix=$g
+    postfix=$g\_$p
     ctime=`grep compression_time out_st_$postfix.txt | cut -d ' ' -f3`
     avg_st=`echo "scale=10; $avg_st+$ctime" | bc`
     
@@ -42,7 +42,7 @@ do
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
-        postfix_samp=$postfix\_$p\_$r
+        postfix_samp=$postfix\_$r
         ctime=`grep compression_time out_stbs_fast_$postfix_samp.txt | cut -d ' ' -f3`
         avg_stbs_fast=`echo "scale=10; $avg_stbs_fast+$ctime" | bc`
         
