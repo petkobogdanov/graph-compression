@@ -14,7 +14,7 @@ rm $results_approximation\_wvb.dat
 
 avg_st=0
 
-for p in ${param_size[@]}
+for p in ${param_sizes[@]}
 do
   avg_stbs_fast=0
   avg_stbs_slow=0
