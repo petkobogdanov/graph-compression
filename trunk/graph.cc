@@ -538,7 +538,14 @@ void Graph::build_distance_str_slice_tree_sample(const unsigned max_radius)
 	for(unsigned int v = 0; v < num_vertices; v++)
 	{
 		distances.push_back(max_radius+1);
-		distance_str.push_back(new std::vector< std::list<unsigned int >* >);
+	}
+	
+	if(! distance_str.size())
+	{
+		for(unsigned int v = 0; v < num_vertices; v++)
+		{
+			distance_str.push_back(new std::vector< std::list<unsigned int >* >);
+		}
 	}
 
 	std::queue<unsigned int> queue;
