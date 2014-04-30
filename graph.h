@@ -300,6 +300,8 @@ class Graph
 			const std::string& output_file_name,
 			const unsigned int max_radius);
 		
+		void clear_distance_str();
+		
 		/*Inline methods:*/
 		/**
 		 * Returns the size of the graph
@@ -607,7 +609,6 @@ class Graph
 		unsigned int count_vertices(const std::string& values_file_name) const;
 
 		void free_distance_str();
-		void clear_distance_str();
 };
 
 #endif

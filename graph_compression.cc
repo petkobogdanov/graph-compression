@@ -1187,7 +1187,7 @@ void SliceTreeSamp::optimal_cut(st_node_t* st_node)
 	st_node->error_best_cut = global_error - opt_reduction;
 	num_pruned += _num_pruned;
 	total_slices += _total_slices;
-	
+	graph->clear_distance_str();
 	//printf("pruning rate = %lf\n", double(num_pruned)/total_slices);
 		
 //	printf("**center = %d, radius = %d, reduction = %lf\n", opt_center, opt_radius, opt_reduction);
