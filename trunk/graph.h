@@ -118,6 +118,10 @@ class Graph
 			std::vector<unsigned int>& partition);
 		
 		void start_distance_str_slice_tree_sample();
+
+		void clean_distance_str_sample(const std::vector<unsigned int>& partition,
+			const std::vector<bool>& bitmap);
+		
 		/**
 		 * Prints the slice tree distance structure
 		 * @param 

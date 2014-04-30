@@ -716,9 +716,41 @@ void Graph::build_distance_str_slice_tree_sample
 			}
 		}
 	}
-
-//	print();
 }
+
+void Graph::clean_distance_str_sample(
+	const std::vector<unsigned int>& partition, 
+	const std::vector<bool>& bitmap)
+{
+	unsigned int u;
+	unsigned int vertex;
+	std::list<unsigned int>::iterator r_it; 
+
+	for(unsigned int v = 0; v < partition.size(); v++)
+	{
+		vertex = partition.at(v);
+
+		for(unsigned int r = 0; r < distance_str.at(vertex)->size(); r++)
+		{
+			r_it = distance_str.at(vertex)->at(r)->begin();
+			
+			while(r_it != distance_str.at(vertex)->at(r)->end())
+			{
+				u = *r_it;
+
+				if(! bitmap.at(u))
+				{
+					r_it = distance_str.at(vertex)->at(r)->erase(r_it);
+				}
+				else
+				{
+					++r_it;
+				}
+			}
+		}
+	}
+}
+
 
 /**
  * Builds a distance matrix for the graph
