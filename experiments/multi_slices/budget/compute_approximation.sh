@@ -14,7 +14,7 @@ rm $results_approximation\_wvb.dat
 
 avg_st=0
 
-for p in ${param_rho[@]}
+for p in ${param_budget[@]}
 do
   avg_stbs_fast=0
   avg_stbs_slow=0
@@ -104,15 +104,12 @@ do
 
   echo "$p	$avg_stbs_fast" >> $results_approximation\_stbs_fast.dat
   echo "$p	$avg_stbs_slow" >> $results_approximation\_stbs_slow.dat
-done
   
-avg_st=`echo "scale=10; $avg_st/($num_graphs*${#param_budget[@]})" | bc`
-avg_al=`echo "scale=10; $avg_al/($num_graphs*${#param_budget[@]})" | bc`
-avg_wvp=`echo "scale=10; $avg_wvp/($num_graphs*${#param_budget[@]})" | bc`
-avg_wvb=`echo "scale=10; $avg_wvb/($num_graphs*${#param_budget[@]})" | bc`
+  avg_st=`echo "scale=10; $avg_st/($num_graphs)" | bc`
+  avg_al=`echo "scale=10; $avg_al/($num_graphs)" | bc`
+  avg_wvp=`echo "scale=10; $avg_wvp/($num_graphs)" | bc`
+  avg_wvb=`echo "scale=10; $avg_wvb/($num_graphs)" | bc`
 
-for p in ${param_rho[@]}
-do
   echo "$p	$avg_st" >> $results_approximation\_st.dat
   echo "$p	$avg_al" >> $results_approximation\_al.dat
   echo "$p	$avg_wvp" >> $results_approximation\_wvp.dat
