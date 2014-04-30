@@ -8,7 +8,6 @@ source default.sh
 rm $results_budget\_st.dat
 rm $results_budget\_stbs_fast.dat
 rm $results_budget\_stbs_slow.dat
-rm $results_budget\_stus_slow.dat
 rm $results_budget\_al.dat
 rm $results_budget\_wvp.dat
 rm $results_budget\_wvb.dat
@@ -19,7 +18,6 @@ for p in ${param_budget[@]}
 do
   avg_stbs_fast=0
   avg_stbs_slow=0
-  avg_stus_slow=0
   avg_al=0
   avg_wvp=0
   avg_wvb=0
@@ -48,18 +46,13 @@ do
         
 	ctime=`grep compression_time out_stbs_slow_$postfix_samp.txt | cut -d ' ' -f3`
         avg_stbs_slow=`echo "scale=10; $avg_stbs_slow+$ctime" | bc`
-        
-	ctime=`grep compression_time out_stus_slow_$postfix_samp.txt | cut -d ' ' -f3`
-        avg_stus_slow=`echo "scale=10; $avg_stus_slow+$ctime" | bc`
     done
   done
   avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/($num_graphs*$num_runs_sampling)" | bc`
   avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
-  avg_stus_slow=`echo "scale=10; $avg_stus_slow/($num_graphs*$num_runs_sampling)" | bc`
 
   echo "$p	$avg_stbs_fast" >> $results_time\_stbs_fast.dat
   echo "$p	$avg_stbs_slow" >> $results_time\_stbs_slow.dat
-  echo "$p	$avg_stus_slow" >> $results_time\_stus_slow.dat
 done
   
 avg_st=`echo "scale=10; $avg_st/($num_graphs*${#param_budget[@]})" | bc`
