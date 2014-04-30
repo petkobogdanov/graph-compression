@@ -53,15 +53,12 @@ do
 
   echo "$p	$avg_stbs_fast" >> $results_time\_stbs_fast.dat
   echo "$p	$avg_stbs_slow" >> $results_time\_stbs_slow.dat
-done
   
-avg_st=`echo "scale=10; $avg_st/($num_graphs*${#param_budget[@]})" | bc`
-avg_al=`echo "scale=10; $avg_al/($num_graphs*${#param_budget[@]})" | bc`
-avg_wvp=`echo "scale=10; $avg_wvp/($num_graphs*${#param_budget[@]})" | bc`
-avg_wvb=`echo "scale=10; $avg_wvb/($num_graphs*${#param_budget[@]})" | bc`
+  avg_st=`echo "scale=10; $avg_st/($num_graphs)" | bc`
+  avg_al=`echo "scale=10; $avg_al/($num_graphs)" | bc`
+  avg_wvp=`echo "scale=10; $avg_wvp/($num_graphs)" | bc`
+  avg_wvb=`echo "scale=10; $avg_wvb/($num_graphs)" | bc`
 
-for p in ${param_budget[@]}
-do
   echo "$p	$avg_st" >> $results_time\_st.dat
   echo "$p	$avg_al" >> $results_time\_al.dat
   echo "$p	$avg_wvp" >> $results_time\_wvp.dat
