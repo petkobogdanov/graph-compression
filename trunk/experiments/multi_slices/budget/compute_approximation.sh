@@ -57,7 +57,6 @@ do
 
     if [ $(echo " $approximation > 1" | bc) -eq 1 ]
     then
-    then
       approximation=1
     fi
 
@@ -68,7 +67,6 @@ do
     approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
 
     if [ $(echo " $approximation > 1" | bc) -eq 1 ]
-    then
     then
       approximation=1
     fi
