@@ -23,3 +23,7 @@ rho_slow_sampling=0.6
 rate_fast_sampling=0.01
 rate_slow_sampling=0.1
 num_threads=1
+results_time='size_time'
+results_pruning='size_pruning'
+results_approximation='size_approximation'
+
