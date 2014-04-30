@@ -5,12 +5,12 @@
 
 source default.sh
 
-rm $results_budget\_st.dat
-rm $results_budget\_stbs_fast.dat
-rm $results_budget\_stbs_slow.dat
-rm $results_budget\_al.dat
-rm $results_budget\_wvp.dat
-rm $results_budget\_wvb.dat
+rm $results_time\_st.dat
+rm $results_time\_stbs_fast.dat
+rm $results_time\_stbs_slow.dat
+rm $results_time\_al.dat
+rm $results_time\_wvp.dat
+rm $results_time\_wvb.dat
 
 avg_st=0
 
