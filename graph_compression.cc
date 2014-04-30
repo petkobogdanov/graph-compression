@@ -1877,6 +1877,9 @@ const bool SliceTreeSamp::split_partition(st_node_t* st_node)
 		dist_near_center, dist_center_part, radius_near_center, 
 		radius_part, st_node->in_partition);
 
+	graph->clean_distance_str_sample(left->partition, left->in_partition);
+	graph->clean_distance_str_sample(right->partition, right->in_partition);
+
 	left->center = left->partition[0];
 	right->center = right->partition[0];
 	left->radius = 0;
