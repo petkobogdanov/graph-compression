@@ -27,12 +27,12 @@ do
     alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
     approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
 
-    if [ "$approximation" > "1" ]
+    if [ $(echo " $approximation > 1" | bc) -eq 1 ]
     then
       approximation=1
     fi
 
-    avg_st=`echo "scale=10; $avg_st+" $approximation| bc`
+    avg_st=`echo "scale=10; $avg_st+$approximation"| bc`
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
@@ -41,7 +41,7 @@ do
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
 	
-        if [ "$approximation" > "1" ]
+        if [ $(echo " $approximation > 1" | bc) -eq 1 ]
         then
           approximation=1
         fi
@@ -52,7 +52,7 @@ do
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
 	
-        if [ "$approximation" > "1" ]
+        if [ $(echo " $approximation > 1" | bc) -eq 1 ]
         then
           approximation=1
         fi
@@ -63,7 +63,7 @@ do
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
 	
-        if [ "$approximation" > "1" ]
+        if [ $(echo " $approximation > 1" | bc) -eq 1 ]
         then
           approximation=1
 	fi
