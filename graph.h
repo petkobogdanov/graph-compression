@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define GRAPH_H
 
 #define MAX_GRAPH_DIAMETER UCHAR_MAX
+#define MAX_SIZE_DISTANCE_STR 1000000000
 
 /*std includes*/
 #include <string>
@@ -41,13 +42,13 @@ typedef struct Edge
 	double difference;
 }edge_t;
 
-class CompareEdges
+class ComparePairs
 {
 	public:
-		bool operator()(const edge_t* edge_one, 
-			const edge_t* edge_two) const
+		bool operator()(const std::pair<unsigned int, double>* p_one, 
+			const std::pair<unsigned int, double>* p_two) const
 		{
-			return edge_one->difference > edge_two->difference;
+			return p_one->second < p_two->second;
 		}
 };
 
@@ -119,8 +120,11 @@ class Graph
 		
 		void start_distance_str_slice_tree_sample();
 
-		void clean_distance_str_sample(const std::vector<unsigned int>& partition,
+		void clear_distance_str_sample(const std::vector<unsigned int>& partition,
 			const std::vector<bool>& bitmap);
+
+		void clear_distance_str_biased_sample(const unsigned int num_samples,
+			const std::vector<unsigned int>& partition);
 		
 		/**
 		 * Prints the slice tree distance structure
@@ -299,8 +303,6 @@ class Graph
 		void pre_compute_partition_sizes(const unsigned int num_threads, 
 			const std::string& output_file_name,
 			const unsigned int max_radius);
-		
-		void clear_distance_str();
 		
 		/*Inline methods:*/
 		/**
@@ -572,6 +574,7 @@ class Graph
 		double theta;
 		std::vector<float> selection_prob;
 		std::vector<unsigned int> distances;
+		unsigned long size_distance_str;
 		
 		/**
 		 * Performs a bfs search over the graph, returning the size of the set of vertices 

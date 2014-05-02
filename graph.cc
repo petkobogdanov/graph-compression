@@ -50,6 +50,7 @@ Graph::Graph(const std::string& graph_file_name, const std::string& values_file_
 	uniform_sampling = false;
 	sum_values = 0;
 	sum_weights = 0;
+	size_distance_str = 0;
 }
 
 /**
@@ -68,6 +69,7 @@ Graph::Graph(const std::string& graph_file_name) throw (std::ios_base::failure)
 	uniform_sampling = false;
 	sum_values = 0;
 	sum_weights = 0;
+	size_distance_str = 0;
 }
 
 /**
@@ -317,19 +319,6 @@ void Graph::free_distance_str()
 	}
 
 	distance_str.clear();
-}
-
-void Graph::clear_distance_str()
-{
-	for(unsigned int v = 0; v < distance_str.size(); v++)
-	{
-		for(unsigned int d = 0; d < distance_str[v]->size(); d++)
-		{
-			distance_str[v]->at(d)->clear();
-		}
-	}
-
-	is_sampled.clear();
 }
 
 /**
@@ -726,12 +715,15 @@ void Graph::build_distance_str_slice_tree_sample
 	
 				distance_str[partition.at(u)]->at
 					(distances[partition.at(u)])->push_back(*v);
+				size_distance_str++;
 			}
 		}
 	}
+
+//	printf("size_distance_str = %lu\n", size_distance_str);
 }
 
-void Graph::clean_distance_str_sample(
+void Graph::clear_distance_str_sample(
 	const std::vector<unsigned int>& partition, 
 	const std::vector<bool>& bitmap)
 {
@@ -751,9 +743,10 @@ void Graph::clean_distance_str_sample(
 			{
 				u = *r_it;
 
-				if(! bitmap.at(u))
+				if(bitmap.at(u))
 				{
 					r_it = distance_str.at(vertex)->at(r)->erase(r_it);
+					size_distance_str--;
 				}
 				else
 				{
@@ -1295,11 +1288,17 @@ void Graph::set_biased_sample(const unsigned int num_samples,
 		}
 	}
 
+	if(size_distance_str > MAX_SIZE_DISTANCE_STR)
+	{
+		clear_distance_str_biased_sample(num_samples, partition);
+	}
+
 	unsigned samples_size = 0;
 	sum_values = 0;
 	sum_weights = 0;
 	sum_weighted_values = 0;
 	samples.clear();
+	
 	while(samples_size < num_samples)
 	{
 		rd = random_double();
@@ -1346,6 +1345,12 @@ void Graph::resample_biased_sample(const unsigned int num_samples,
 	samples.clear();
 	unsigned samples_size = 0;
 	double rd;
+	
+	if(size_distance_str > MAX_SIZE_DISTANCE_STR)
+	{
+		clear_distance_str_biased_sample(num_samples, partition);
+	}
+
 	
 	while(samples_size < num_samples)
 	{
@@ -1414,6 +1419,44 @@ void Graph::resample(const unsigned int num_samples,
 	{
 		resample_uniform_sample(num_samples, partition);
 	}
+}
+
+void Graph::clear_distance_str_biased_sample(const unsigned int num_samples, 
+	const std::vector<unsigned int>& partition)
+{
+	std::vector<std::pair<unsigned int, double>*> candidates_to_be_removed;
+	std::vector<bool> to_be_removed;
+	to_be_removed.reserve(size());
+	double prob;
+
+	for(unsigned int v = 0; v < size(); v++)
+	{
+		to_be_removed.push_back(false);
+	}
+
+	for(unsigned int v = 0; v < partition.size(); v++)
+	{
+		if(! count_sample.at(partition.at(v)) && is_sampled.at(partition.at(v)))
+		{
+			prob = fabs(vertex_values.at(partition.at(v)) - mu) / lambda;
+			candidates_to_be_removed.push_back(
+				new std::pair<unsigned int, double>
+					(partition.at(v), prob));
+		}
+	}
+
+	std::sort(candidates_to_be_removed.begin(), 
+		candidates_to_be_removed.end(), ComparePairs());
+
+	for(unsigned int i = 0; i < num_samples; i++)
+	{
+		if(i < candidates_to_be_removed.size())
+		{
+			to_be_removed.at(candidates_to_be_removed.at(i)->first) = true;
+		}
+	}
+
+	clear_distance_str_sample(partition, to_be_removed);
 }
 
 /**
