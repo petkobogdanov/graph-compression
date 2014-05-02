@@ -1,15 +1,18 @@
 set term postscript eps 40 enhanced color solid
 set style fill solid 1.00 border
-set style data histogram
-set style histogram cluster gap 1
 set encoding iso_8859_1
 set output "pruning_size_syn.eps"
-set xlabel "graph size"
-set ylabel "% of slices pruned"
+set xlabel "||V||"
+set ylabel "% pruning # samples"
 set key top
+set xrange [6000:2000000]
 set yrange [0:1]
-#set xrange [-1:3]
-set boxwidth .9 absolute
-set xtics ("10^4" 0, "10^5" 1, "10^6" 2)
-plot "size_pruning.dat" using 2 notitle lc 1 fs pattern 4,'' using 3 notitle lc 3 fs pattern 1
+#set xtics 1
+#set ytics 1000
+set key top right
+set format x "10^{%L}"
+#set format y "10^{%L}"
+set log x
+#set log y
+plot "size_pruning_stbs_slow.dat" using 1:2 notitle with points lt 1 lc 3 lw 4 pt 7 ps 4,"size_pruning_stbs_fast.dat" using 1:2 notitle with points lt 1 lc 1 lw 4 pt 9 ps 4
 
