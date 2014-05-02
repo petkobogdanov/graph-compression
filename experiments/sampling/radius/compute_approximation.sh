@@ -19,7 +19,6 @@ do
     postfix=$g
     optimal_reduction=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
     optimal_reduction=`echo ${optimal_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
-    approximation=`echo "scale=10; $alg_reduction/$optimal_reduction" | bc`
 
     for((r=1; r<=$num_runs_sampling; r++))
     do
