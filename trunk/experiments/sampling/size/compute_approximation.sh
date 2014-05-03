@@ -9,7 +9,6 @@ rm $results_approximation.dat
 
 for p in ${param_sizes[@]}
 do
-  avg_st=0
   avg_stbs_fast=0
   avg_stbs_slow=0
   avg_stus_slow=0
