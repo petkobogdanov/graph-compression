@@ -7,7 +7,7 @@ source default.sh
 
 rm $results_approximation.dat
 
-for p in ${param_budget[@]}
+for p in ${param_num_partitions[@]}
 do
   avg_wvp=0
   avg_wvb=0
@@ -18,7 +18,7 @@ do
   do
     prefix=$graph_name_prefix\_$g\_$p
     postfix=$g\_$p
-    optimal_reduction=`grep optimal_sse_reduction $graph_name_prefix\_$g.stats | cut -d ' ' -f3`
+    optimal_reduction=`grep optimal_sse_reduction $prefix.stats | cut -d ' ' -f3`
     optimal_reduction=`echo ${optimal_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
         
     alg_reduction=`grep sse_reduction out_wvp_$postfix.txt | cut -d ' ' -f3`
