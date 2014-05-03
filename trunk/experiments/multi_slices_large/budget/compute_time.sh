@@ -17,7 +17,7 @@ do
   for((g=1; g<=$num_graphs; g++))
   do
     prefix=$graph_name_prefix\_$g\_$p
-    postfix=$g
+    postfix=$g\_$p
     ctime=`grep compression_time out_wvp_$postfix.txt | cut -d ' ' -f3`
     avg_wvp=`echo "scale=10; $avg_wvp+$ctime" | bc`
     
