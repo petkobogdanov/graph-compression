@@ -69,6 +69,12 @@ do
         avg_stbs_slow=`echo "scale=10; $avg_stbs_slow+$approximation" | bc`
     done
   done
+  
+  avg_stbs_fast=`echo "scale=10; $avg_stbs_fast/($num_graphs*$num_runs_sampling)" | bc`
+  avg_stbs_slow=`echo "scale=10; $avg_stbs_slow/($num_graphs*$num_runs_sampling)" | bc`
+  avg_wvp=`echo "scale=10; $avg_wvp/($num_graphs)" | bc`
+  avg_wvb=`echo "scale=10; $avg_wvb/($num_graphs)" | bc`
+
   echo "$p      $avg_wvb        $avg_wvp        $avg_stbs_slow  $avg_stbs_fast" >> $results_approximation.dat
 done
   
