@@ -13,7 +13,7 @@ do
   avg_stbs_slow=0
   postfix=$f  
   optimal_reduction=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
-  optimal_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
+  optimal_reduction=`echo ${optimal_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
 
   for((r=1; r<=$num_runs_sampling; r++))
   do
