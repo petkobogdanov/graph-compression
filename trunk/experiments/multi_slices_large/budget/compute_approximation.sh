@@ -30,7 +30,7 @@ do
       approximation=1
     fi
 
-    avg_wvb=`echo "scale=10; $avg_wvb+$approximation" | bc`
+    avg_wvp=`echo "scale=10; $avg_wvp+$approximation" | bc`
     
     alg_reduction=`grep sse_reduction out_wvb_$postfix.txt | cut -d ' ' -f3`
     alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
