@@ -1448,7 +1448,7 @@ void Graph::clear_distance_str_biased_sample(const unsigned int num_samples,
 	std::sort(candidates_to_be_removed.begin(), 
 		candidates_to_be_removed.end(), ComparePairs());
 
-	for(unsigned int i = 0; i < num_samples; i++)
+	for(unsigned int i = 0; i < 3*num_samples; i++)
 	{
 		if(i < candidates_to_be_removed.size())
 		{
