@@ -26,7 +26,7 @@ do
     
     for((r=1; r<=$num_runs_sampling; r++))
     do
-        postfix_samp=$postfix\_$p\_$r
+        postfix_samp=$postfix\_$r
         ctime=`grep compression_time out_stbs_fast_$postfix_samp.txt | cut -d ' ' -f3`
         avg_stbs_fast=`echo "scale=10; $avg_stbs_fast+$ctime" | bc`
         
