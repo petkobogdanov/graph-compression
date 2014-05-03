@@ -7,8 +7,6 @@ source default.sh
 
 rm $results_pruning.dat
 
-echo "data      STBS_SLOW       STBS_FAST" >> $results_pruning.dat
-
 for f in ${dblp_data_files[@]}
 do
   avg_stbs_fast=0
@@ -35,3 +33,4 @@ do
 
   echo "$f	$avg_stbs_slow	$avg_stbs_fast" >> $results_pruning.dat
 done
+

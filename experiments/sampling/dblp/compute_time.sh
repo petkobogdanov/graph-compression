@@ -7,8 +7,6 @@ source default.sh
 
 rm $results_time.dat
 
-echo "data	ST	STBS_SLOW	STBS_FAST" >> $results_time.dat
-
 for f in ${dblp_data_files[@]}
 do
   avg_st=0
