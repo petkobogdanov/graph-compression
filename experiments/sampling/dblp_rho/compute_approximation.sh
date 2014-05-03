@@ -12,7 +12,6 @@ do
   avg_stbs_fast=0
   avg_stbs_slow=0
   
-  prefix=$graph_name_prefix\_$g\_$p
   postfix=${dblp_data_files[0]}
   optimal_reduction=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
   optimal_reduction=`echo ${optimal_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
