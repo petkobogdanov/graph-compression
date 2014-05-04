@@ -6,12 +6,12 @@ budget = 4923
 relative_reductions = {}
 
 for snp in range(0, num_snps):
-  file_name="out_slice_tree_"+str(snp)+"_"+str(budget)+".dat"
-  snp_file = open(file_name, 'r')
-  sse = 0
-  sse_red = 0
-  
   if snp % 12 == 0:
+    file_name="out_slice_tree_"+str(snp)+"_"+str(budget)+".dat"
+    snp_file = open(file_name, 'r')
+    sse = 0
+    sse_red = 0
+    
     for line in snp_file:
       line = line.rstrip()
       vec = line.rsplit()
