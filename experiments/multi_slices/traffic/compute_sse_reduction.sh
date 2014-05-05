@@ -12,19 +12,19 @@ do
   postfix=$f  
   st=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
   st=`echo ${st} | sed -e 's/[eE]+*/\\*10\\^/'`
-  sse=`grep sse out_st_$postfix.txt | cut -d ' ' -f3`
+  sse=`grep sse out_st_$postfix.txt | cut -d ' ' -f3 -m1`
   sse=`echo ${sse} | sed -e 's/[eE]+*/\\*10\\^/'`
   st=`echo "scale=10; $st/($sse+$st)" | bc`
   
   wvb=`grep sse_reduction out_wvb_$postfix.txt | cut -d ' ' -f3`
   wvb=`echo ${wvb} | sed -e 's/[eE]+*/\\*10\\^/'`
-  sse=`grep sse out_wvb_$postfix.txt | cut -d ' ' -f3`
+  sse=`grep sse out_wvb_$postfix.txt | cut -d ' ' -f3 -m1`
   sse=`echo ${sse} | sed -e 's/[eE]+*/\\*10\\^/'`
   wvb=`echo "scale=10; $wvb/($sse+$wvb)" | bc`
   
   al=`grep sse_reduction out_al_$postfix.txt | cut -d ' ' -f3`
   al=`echo ${al} | sed -e 's/[eE]+*/\\*10\\^/'`
-  sse=`grep sse out_al_$postfix.txt | cut -d ' ' -f3`
+  sse=`grep sse out_al_$postfix.txt | cut -d ' ' -f3 -m1`
   sse=`echo ${sse} | sed -e 's/[eE]+*/\\*10\\^/'`
   al=`echo "scale=10; $al/($sse+$al)" | bc`
 
