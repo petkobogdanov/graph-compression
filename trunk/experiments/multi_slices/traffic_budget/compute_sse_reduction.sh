@@ -7,9 +7,9 @@ source default.sh
 
 rm $results_sse_reduction.dat
 
-for f in ${data_files[@]}
+for p in ${param_budget[@]}
 do
-  postfix=$f  
+  postfix=$p
   st=`grep sse_reduction out_st_$postfix.txt | cut -d ' ' -f3`
   st=`echo ${st} | sed -e 's/[eE]+*/\\*10\\^/'`
   sse=`grep -m1 sse out_st_$postfix.txt | cut -d ' ' -f3`
@@ -28,6 +28,6 @@ do
   sse=`echo ${sse} | sed -e 's/[eE]+*/\\*10\\^/'`
   al=`echo "scale=10; $al/($sse+$al)" | bc`
 
-  echo "$f	$wvb	$al	$st" >> $results_sse_reduction.dat
+  echo "$p	$wvb	$al	$st" >> $results_sse_reduction.dat
 done
   
