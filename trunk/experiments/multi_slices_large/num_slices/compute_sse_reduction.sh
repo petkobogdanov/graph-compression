@@ -38,14 +38,14 @@ do
         postfix_samp=$postfix\_$r
         alg_reduction=`grep sse_reduction out_stbs_fast_$postfix_samp.txt | cut -d ' ' -f3`
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
-	sse=`grep -m1 sse out_stbs_fast_$postfix.txt | cut -d ' ' -f3`
+	sse=`grep -m1 sse out_stbs_fast_$postfix_samp.txt | cut -d ' ' -f3`
     	alg_reduction=`echo "scale=10; $alg_reduction/($alg_reduction+$sse)" | bc`
 	
 	avg_stbs_fast=`echo "scale=10; $avg_stbs_fast+$alg_reduction" | bc`
 
         alg_reduction=`grep sse_reduction out_stbs_slow_$postfix_samp.txt | cut -d ' ' -f3`
         alg_reduction=`echo ${alg_reduction} | sed -e 's/[eE]+*/\\*10\\^/'`
-	sse=`grep -m1 sse out_stbs_slow_$postfix.txt | cut -d ' ' -f3`
+	sse=`grep -m1 sse out_stbs_slow_$postfix_samp.txt | cut -d ' ' -f3`
     	alg_reduction=`echo "scale=10; $alg_reduction/($alg_reduction+$sse)" | bc`
         
         avg_stbs_slow=`echo "scale=10; $avg_stbs_slow+$alg_reduction" | bc`
