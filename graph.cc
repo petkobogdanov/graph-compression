@@ -978,10 +978,13 @@ void Graph::build_bfs_vector()
 {
 	std::vector<unsigned int> distances;
 	distances.reserve(size());
+	std::vector<bool> visited;
+	visited.reserve(size());
 
 	for(unsigned int v = 0; v < size(); v++)
 	{
 		distances.push_back(UINT_MAX);
+		visited.push_back(false);
 	}
 	
 	sorted_vector.reserve(size());
@@ -989,28 +992,48 @@ void Graph::build_bfs_vector()
 	std::queue<unsigned int> queue;
 	unsigned int u;
 	unsigned int z;
+	unsigned int start = 0;
 
 	/*The BFS starts from the vertex 0*/
-	distances[0] = 0;
-	queue.push(0);
-	sorted_vector.push_back(0);
-
-	while(! queue.empty())
+	
+	while(sorted_vector.size() < size())
 	{
-		u = queue.front();
-		queue.pop();
-			
-		for (std::list<unsigned int>::iterator it = adjacency_list[u]->begin(); 
-			it != adjacency_list[u]->end(); ++it)
-		{
-			z = *it;
+		distances[start] = 0;
+		visited.at(start) = true;
+		queue.push(start);
+		sorted_vector.push_back(start);
 
-			if(distances[z] > distances[u] + 1)
-			{
-				distances[z] = distances[u] + 1;
-				queue.push(z);
+		while(! queue.empty())
+		{
+			u = queue.front();
+			queue.pop();
 				
-				sorted_vector.push_back(z);
+			for (std::list<unsigned int>::iterator it = adjacency_list[u]->begin(); 
+				it != adjacency_list[u]->end(); ++it)
+			{
+				z = *it;
+	
+				if(distances[z] > distances[u] + 1)
+				{
+					distances[z] = distances[u] + 1;
+					queue.push(z);
+					
+					if(! visited.at(z))
+					{
+						sorted_vector.push_back(z);
+						visited.at(z) = true;
+					}
+				}
+			}
+		}
+		
+		for(int v = size()-1; v >= 0; v--)
+		{
+			distances.at(v) = UINT_MAX;
+			
+			if(! visited.at(v))
+			{
+				start = v;
 			}
 		}
 	}
