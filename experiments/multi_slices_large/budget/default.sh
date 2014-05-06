@@ -24,4 +24,4 @@ rate_fast_sampling=0.01
 rate_slow_sampling=0.1
 num_threads=1
 results_time='budget_time'
-results_approximation='budget_sse_reduction'
+results_sse_reduction='budget_sse_reduction'
