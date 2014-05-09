@@ -5,7 +5,7 @@
 
 num_runs_sampling=10
 max_radius=2
-param_budget=(32 64 128 256 512 1024)
+param_budget=(25 50 100 200 400)
 graph_compression='../../../graph_compression'
 delta_fast_sampling=0.4
 delta_slow_sampling=0.1

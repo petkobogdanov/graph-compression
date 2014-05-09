@@ -7,7 +7,7 @@ source default.sh
 
 for p in ${param_budget[@]}
 do
-    $f=$data_file
+    f=$data_file
     echo "$graph_compression -g dblp.graph -v $f.data -o output -c WVB -b $p > out_wvb_$p.txt"
     $graph_compression -g dblp.graph -v $f.data -o output -c WVB -b $p > out_wvb_$p.txt
     
