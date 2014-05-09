@@ -9,12 +9,11 @@ rm $results_time.dat
 
 for p in ${param_budget[@]}
 do
-  avg_st=0
   avg_stbs_fast=0
   avg_stbs_slow=0
   postfix=$p
   ctime=`grep compression_time out_wvb_$postfix.txt | cut -d ' ' -f3`
-  avg_wvb=`echo "scale=10; $avg_wvb+$ctime" | bc`
+  avg_wvb=`echo "scale=10; $avg_wvb" | bc`
   
   for((r=1; r<=$num_runs_sampling; r++))
   do
