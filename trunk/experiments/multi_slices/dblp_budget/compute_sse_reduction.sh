@@ -7,11 +7,11 @@ source default.sh
 
 rm $results_sse_reduction.dat
 
-for f in ${dblp_data_files[@]}
+for p in ${param_budget[@]}
 do
   avg_stbs_fast=0
   avg_stbs_slow=0
-  postfix=$f  
+  postfix=$p  
   wvb=`grep sse_reduction out_wvb_$postfix.txt | cut -d ' ' -f3`
   wvb=`echo ${wvb} | sed -e 's/[eE]+*/\\*10\\^/'`
   sse=`grep -m1 sse out_wvb_$postfix.txt | cut -d ' ' -f3`
