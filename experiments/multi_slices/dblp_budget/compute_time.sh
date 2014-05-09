@@ -13,7 +13,7 @@ do
   avg_stbs_slow=0
   postfix=$p
   ctime=`grep compression_time out_wvb_$postfix.txt | cut -d ' ' -f3`
-  avg_wvb=`echo "scale=10; $avg_wvb" | bc`
+  avg_wvb=`echo "scale=10; $ctime" | bc`
   
   for((r=1; r<=$num_runs_sampling; r++))
   do
